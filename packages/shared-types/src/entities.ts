@@ -1,3 +1,6 @@
+import { AIPersona, AIGenerationParams } from './ai';
+import { Currency } from './enums';
+
 // Core Entity Types for WorldBest Platform
 
 export interface BaseEntity {
@@ -247,12 +250,6 @@ export interface Economy extends BaseEntity {
   wealth_distribution: WealthDistribution;
 }
 
-export interface Currency {
-  name: string;
-  symbol: string;
-  denominations: Denomination[];
-  exchange_rates?: Record<string, number>;
-}
 
 export interface Denomination {
   name: string;
@@ -334,14 +331,6 @@ export interface TextVersion extends BaseEntity {
   quality_score?: number;
 }
 
-export interface AIGenerationParams {
-  persona: AIPersona;
-  temperature: number;
-  max_tokens: number;
-  prompt_template_id?: string;
-  context_refs: string[];
-  safety_overrides?: Record<string, any>;
-}
 
 export interface StyleProfile extends BaseEntity {
   user_id: string;
@@ -450,9 +439,3 @@ export enum AIPersona {
 
 export enum EconomyType {
   BARTER = 'barter',
-  CURRENCY = 'currency',
-  MIXED = 'mixed',
-  GIFT = 'gift',
-  COMMAND = 'command',
-  MARKET = 'market'
-}
