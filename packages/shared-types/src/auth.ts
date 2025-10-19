@@ -1,4 +1,5 @@
-// Authentication and Authorization Types
+// User and Authentication Types
+import { SubscriptionPlan } from './billing';
 
 export interface User {
   id: string;
