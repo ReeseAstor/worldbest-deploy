@@ -1,6 +1,3 @@
-import { AIPersona, AIGenerationParams } from './ai';
-import { Currency } from './enums';
-
 // Core Entity Types for WorldBest Platform
 
 export interface BaseEntity {
@@ -431,11 +428,6 @@ export enum RenderingMode {
   FULL = 'full'
 }
 
-export enum AIPersona {
-  MUSE = 'muse',
-  EDITOR = 'editor',
-  COACH = 'coach'
-}
 
 export enum EconomyType {
   BARTER = 'barter',
