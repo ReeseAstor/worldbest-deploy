@@ -22,12 +22,12 @@ export interface UserPreferences {
   theme: 'light' | 'dark' | 'auto';
   language: string;
   timezone: string;
-  email_notifications: EmailNotificationSettings;
+  email_notifications: UserEmailNotificationSettings;
   editor_settings: EditorSettings;
   ai_settings: UserAISettings;
 }
 
-export interface EmailNotificationSettings {
+export interface UserEmailNotificationSettings {
   project_updates: boolean;
   collaboration_invites: boolean;
   billing_alerts: boolean;
