@@ -1,3 +1,6 @@
+import type { Currency } from './enums';
+import type { AIPersona, AIGenerationParams } from './ai';
+
 // Core Entity Types for WorldBest Platform
 
 export interface BaseEntity {
