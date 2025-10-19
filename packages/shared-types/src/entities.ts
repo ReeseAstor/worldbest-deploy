@@ -434,3 +434,10 @@ export enum RenderingMode {
 
 export enum EconomyType {
   BARTER = 'barter',
+  AGRARIAN = 'agrarian',
+  MERCANTILE = 'mercantile',
+  INDUSTRIAL = 'industrial',
+  CAPITALIST = 'capitalist',
+  SOCIALIST = 'socialist',
+  MIXED = 'mixed'
+}
