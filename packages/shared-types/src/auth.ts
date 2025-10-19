@@ -99,13 +99,6 @@ export enum UserRole {
   SUPER_ADMIN = 'super_admin'
 }
 
-export enum SubscriptionPlan {
-  STORY_STARTER = 'story_starter',
-  SOLO_AUTHOR = 'solo_author',
-  PRO_CREATOR = 'pro_creator',
-  STUDIO_TEAM = 'studio_team',
-  ENTERPRISE = 'enterprise'
-}
 
 export interface Session {
   id: string;
