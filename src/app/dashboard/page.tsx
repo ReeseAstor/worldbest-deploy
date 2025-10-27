@@ -72,7 +72,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Welcome back, {user?.displayName}!
+            Welcome back, {user?.display_name}!
           </h1>
           <p className="text-muted-foreground">
             Here's what's happening with your writing projects.
