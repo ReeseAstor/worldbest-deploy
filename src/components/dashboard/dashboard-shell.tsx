@@ -128,7 +128,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     <User className="h-4 w-4" />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium">{user?.displayName}</p>
+                    <p className="text-sm font-medium">{user?.display_name}</p>
                     <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                 </div>

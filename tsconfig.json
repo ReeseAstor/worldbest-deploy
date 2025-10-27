@@ -1,5 +1,4 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "es5",
     "lib": ["dom", "dom.iterable", "es6"],
@@ -29,8 +28,8 @@
       "@/store/*": ["./src/store/*"],
       "@/types/*": ["./src/types/*"],
       "@/styles/*": ["./src/styles/*"],
-      "@worldbest/shared-types": ["../../packages/shared-types/src"],
-      "@worldbest/ui-components": ["../../packages/ui-components/src"]
+      "@worldbest/shared-types": ["./packages/shared-types/src"],
+      "@worldbest/ui-components": ["./packages/ui-components/src"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
