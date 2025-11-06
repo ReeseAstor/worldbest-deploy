@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@worldbest/ui-components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@worldbest/ui-components';
+import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@worldbest/ui-components';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -35,7 +34,16 @@ import {
   Zap,
   Crown,
   Settings,
-  Camera
+  Camera,
+  Puzzle,
+  Github,
+  GitBranch,
+  GitPullRequest,
+  GitMerge,
+  Cloud,
+  Database,
+  Link as LinkIcon,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
 
@@ -106,7 +114,7 @@ const plans = [
 export default function SettingsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'billing' | 'notifications' | 'preferences' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'integrations' | 'profile' | 'account' | 'billing' | 'notifications' | 'preferences' | 'security'>('integrations');
   const [loading, setLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
@@ -137,6 +145,19 @@ export default function SettingsPage() {
     browserNotifications: true,
     mobileNotifications: false
   });
+
+  const [githubRepository] = useState('ReeseAstor/worldbest-deploy');
+  const [githubSupabaseDirectory, setGithubSupabaseDirectory] = useState('');
+  const [githubDeployToProduction, setGithubDeployToProduction] = useState(true);
+  const [githubProductionBranch, setGithubProductionBranch] = useState('master');
+  const [githubAutomaticBranching, setGithubAutomaticBranching] = useState(true);
+  const [githubBranchLimit, setGithubBranchLimit] = useState(50);
+  const [githubSupabaseChangesOnly, setGithubSupabaseChangesOnly] = useState(false);
+
+  const [vercelProductionSync, setVercelProductionSync] = useState(true);
+  const [vercelPreviewSync, setVercelPreviewSync] = useState(true);
+  const [vercelDevelopmentSync, setVercelDevelopmentSync] = useState(false);
+  const [vercelEnvPrefix, setVercelEnvPrefix] = useState('NEXT_PUBLIC_');
 
   const handleSaveProfile = async () => {
     setLoading(true);
@@ -175,6 +196,23 @@ export default function SettingsPage() {
     </button>
   );
 
+  const ToggleSwitch = ({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`w-12 h-6 rounded-full transition-colors ${
+        enabled ? 'bg-primary' : 'bg-gray-200'
+      }`}
+      aria-pressed={enabled}
+    >
+      <span
+        className={`block h-5 w-5 rounded-full bg-white transition-transform ${
+          enabled ? 'translate-x-6' : 'translate-x-0.5'
+        }`}
+      />
+    </button>
+  );
+
   return (
     <div className="container max-w-6xl mx-auto py-8">
       {/* Header */}
@@ -190,6 +228,7 @@ export default function SettingsPage() {
         <div className="md:col-span-1">
           <Card>
             <CardContent className="p-4 space-y-1">
+              <TabButton id="integrations" label="Integrations" icon={Puzzle} />
               <TabButton id="profile" label="Profile" icon={User} />
               <TabButton id="account" label="Account" icon={Settings} />
               <TabButton id="billing" label="Billing & Plan" icon={CreditCard} />
@@ -219,7 +258,284 @@ export default function SettingsPage() {
 
         {/* Main Content */}
         <div className="md:col-span-3 space-y-6">
-          {/* Profile Tab */}
+            {activeTab === 'integrations' && (
+              <>
+                <Card>
+                  <CardHeader className="pb-0">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                        <Github className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl">GitHub Integration</CardTitle>
+                        <CardDescription>
+                          Connect any of your GitHub repositories to a project.
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6 pt-6">
+                    <div className="rounded-lg border p-4 md:flex md:items-center md:justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                          <Github className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{githubRepository}</p>
+                          <p className="text-sm text-muted-foreground">GitHub Repository</p>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" className="mt-4 md:mt-0">
+                        <LinkIcon className="mr-2 h-4 w-4" />
+                        Change the connected repository
+                      </Button>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="github-supabase-directory">Supabase directory</Label>
+                        <Input
+                          id="github-supabase-directory"
+                          placeholder="supabase/"
+                          value={githubSupabaseDirectory}
+                          onChange={(e) => setGithubSupabaseDirectory(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Relative path to your Supabase folder
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="github-production-branch">Production branch name</Label>
+                        <Input
+                          id="github-production-branch"
+                          value={githubProductionBranch}
+                          onChange={(e) => setGithubProductionBranch(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Deploy changes to production on push including PR merges
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+                      <div className="space-y-4 rounded-lg border p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-medium">Deploy to production</p>
+                            <p className="text-sm text-muted-foreground">
+                              Deploy changes to production on push including PR merges.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={githubDeployToProduction}
+                            onToggle={() => setGithubDeployToProduction(!githubDeployToProduction)}
+                          />
+                        </div>
+
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-medium">Automatic branching</p>
+                            <p className="text-sm text-muted-foreground">
+                              Create preview branches for every pull request.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={githubAutomaticBranching}
+                            onToggle={() => setGithubAutomaticBranching(!githubAutomaticBranching)}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="github-branch-limit">Branch limit</Label>
+                          <Input
+                            id="github-branch-limit"
+                            type="number"
+                            min={1}
+                            value={githubBranchLimit}
+                            onChange={(e) => setGithubBranchLimit(Number(e.target.value) || 0)}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Maximum number of preview branches
+                          </p>
+                        </div>
+
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-medium">Supabase changes only</p>
+                            <p className="text-sm text-muted-foreground">
+                              Only create branches when Supabase files change.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={githubSupabaseChangesOnly}
+                            onToggle={() => setGithubSupabaseChangesOnly(!githubSupabaseChangesOnly)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 rounded-lg border border-dashed bg-muted/30 p-4">
+                        <div className="flex items-start gap-3">
+                          <RefreshCw className="h-5 w-5 text-primary" />
+                          <div>
+                            <p className="font-medium">How does the GitHub integration work?</p>
+                            <p className="text-sm text-muted-foreground">
+                              Connecting to GitHub allows you to sync preview branches with a chosen GitHub branch, keep your production branch in sync, and automatically create preview branches for every pull request.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="space-y-3 text-sm text-muted-foreground">
+                          <div className="flex items-start gap-3">
+                            <GitBranch className="mt-0.5 h-4 w-4 text-primary" />
+                            <span>Sync preview branches with a chosen GitHub branch.</span>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <GitMerge className="mt-0.5 h-4 w-4 text-primary" />
+                            <span>Keep your production branch in sync automatically.</span>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <GitPullRequest className="mt-0.5 h-4 w-4 text-primary" />
+                            <span>Automatically create preview branches for every pull request.</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-between">
+                    <Button variant="ghost" className="w-full text-destructive hover:text-destructive md:w-auto">
+                      Disable integration
+                    </Button>
+                    <Button className="w-full md:w-auto">Save changes</Button>
+                  </CardFooter>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-0">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                        <Cloud className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl">Vercel Integration</CardTitle>
+                        <CardDescription>
+                          Supabase will keep your environment variables up to date in each of the projects you assign to a Supabase project. You can also link multiple Vercel projects to the same Supabase project.
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6 pt-6">
+                    <div className="space-y-4 rounded-lg border p-4">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-base font-semibold uppercase">
+                            ra
+                          </div>
+                          <div>
+                            <p className="font-medium">reeseastor&apos;s projects</p>
+                            <p className="text-sm text-muted-foreground">Team • Created 19 days ago</p>
+                            <p className="text-xs text-muted-foreground">Added by info@reeseastor.com</p>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm" className="self-start">
+                          Manage
+                        </Button>
+                      </div>
+                      <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                        <span>1 project connection</span>
+                        <span>Repository connections for Vercel</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-4 rounded-lg border p-4 md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                          <Database className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Supabase</p>
+                          <p className="text-sm text-muted-foreground">88Away</p>
+                          <p className="text-xs text-muted-foreground">Connected 2 hours ago • Added by info@reeseastor.com</p>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" className="self-start">
+                        Manage
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4 rounded-lg border p-4">
+                      <div>
+                        <p className="font-medium">Sync environment variables for selected target environments</p>
+                        <p className="text-sm text-muted-foreground">
+                          Choose which environments receive automatic updates.
+                        </p>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+                          <div>
+                            <p className="font-medium">Production</p>
+                            <p className="text-sm text-muted-foreground">
+                              Sync environment variables for production environment.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={vercelProductionSync}
+                            onToggle={() => setVercelProductionSync(!vercelProductionSync)}
+                          />
+                        </div>
+                        <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+                          <div>
+                            <p className="font-medium">Preview</p>
+                            <p className="text-sm text-muted-foreground">
+                              Sync environment variables for preview environment.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={vercelPreviewSync}
+                            onToggle={() => setVercelPreviewSync(!vercelPreviewSync)}
+                          />
+                        </div>
+                        <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+                          <div>
+                            <p className="font-medium">Development</p>
+                            <p className="text-sm text-muted-foreground">
+                              Sync environment variables for development environment.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={vercelDevelopmentSync}
+                            onToggle={() => setVercelDevelopmentSync(!vercelDevelopmentSync)}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="vercel-prefix">Customize public environment variable prefix</Label>
+                        <Input
+                          id="vercel-prefix"
+                          value={vercelEnvPrefix}
+                          onChange={(e) => setVercelEnvPrefix(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          e.g. NEXT_PUBLIC_, VITE_PUBLIC_, PUBLIC_, etc.
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button variant="outline" className="w-full md:w-auto">
+                      Add new project connection
+                    </Button>
+                  </CardContent>
+                  <CardFooter className="flex flex-col gap-3 md:flex-row md:justify-end">
+                    <Button variant="outline" className="w-full md:w-auto">
+                      Cancel
+                    </Button>
+                    <Button className="w-full md:w-auto">
+                      Save
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </>
+            )}
+
+            {/* Profile Tab */}
           {activeTab === 'profile' && (
             <>
               <Card>
