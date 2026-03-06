@@ -1,8 +1,8 @@
 {
-  "name": "@worldbest/web",
+  "name": "@ember/web",
   "version": "1.0.0",
   "private": true,
-  "description": "WorldBest Web Frontend - Next.js Application",
+  "description": "Ember - AI-Powered Romantasy Ghostwriting Platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -31,8 +31,8 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@tanstack/react-query": "^5.8.4",
     "@tanstack/react-query-devtools": "^5.8.4",
-    "@worldbest/shared-types": "file:./packages/shared-types",
-    "@worldbest/ui-components": "file:./packages/ui-components",
+    "@ember/shared-types": "file:./packages/shared-types",
+    "@ember/ui-components": "file:./packages/ui-components",
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.2",
     "clsx": "^2.0.0",

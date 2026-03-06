@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@worldbest/ui-components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@worldbest/ui-components';
+import { Button } from '@ember/ui-components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
 import { 
   Plus, 
   BookOpen, 

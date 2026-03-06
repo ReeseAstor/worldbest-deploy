@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@worldbest/ui-components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@worldbest/ui-components';
+import { Button } from '@ember/ui-components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, Eye, EyeOff, Loader2 } from 'lucide-react';

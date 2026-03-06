@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Button } from '@worldbest/ui-components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@worldbest/ui-components';
+import { Button } from '@ember/ui-components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {

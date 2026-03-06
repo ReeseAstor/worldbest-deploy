@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@worldbest/ui-components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@worldbest/ui-components';
+import { Button } from '@ember/ui-components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
 import { 
-  BookOpen, 
+  Flame, 
   Users, 
   Sparkles, 
-  Shield, 
+  Heart, 
   Download, 
   BarChart3,
   Check,
@@ -16,83 +16,87 @@ import {
   ArrowRight,
   Play,
   Menu,
-  X
+  X,
+  BookHeart,
+  Thermometer
 } from 'lucide-react';
 import { AuthModal } from '@/components/auth/auth-modal';
 
 const features = [
   {
-    icon: BookOpen,
-    title: 'Story Bible Management',
-    description: 'Comprehensive project, book, and chapter organization with rich worldbuilding tools.',
+    icon: Thermometer,
+    title: '5-Level Steam Calibration',
+    description: 'From closed door to scorching. Control heat levels with vocabulary-aware AI that writes steamy scenes authentically.',
   },
   {
     icon: Users,
-    title: 'Character Development',
-    description: 'Rich character profiles with relationship graphs and detailed arc tracking.',
+    title: 'Romance Character Tools',
+    description: 'Rich character profiles with relationship arcs, speech patterns, and POV voice notes for consistent characterization.',
   },
   {
     icon: Sparkles,
-    title: 'AI Orchestration',
-    description: 'Three specialized personas (Muse, Editor, Coach) for different writing needs.',
+    title: 'Genre-Tuned AI Drafting',
+    description: 'AI trained on romantasy tropes and beats. Understands tension arcs, grovel scenes, and HEA pacing.',
   },
   {
-    icon: Shield,
-    title: 'Content Safety',
-    description: 'Placeholder system for sensitive content with customizable rendering.',
+    icon: Heart,
+    title: 'Voice Fingerprinting',
+    description: 'Upload samples and Ember learns your style. Every generation matches your unique voice profile.',
+  },
+  {
+    icon: BookHeart,
+    title: 'Beat Sheet Templates',
+    description: 'Romancing the Beat, Save the Cat, and dark romance templates built for dual-POV storytelling.',
   },
   {
     icon: Download,
-    title: 'Export Capabilities',
-    description: 'Multiple formats including ePub, PDF, and JSON with selective redaction.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Analytics Dashboard',
-    description: 'Track progress, word count, and AI token usage with detailed insights.',
+    title: 'KDP-Ready Export',
+    description: 'One-click export to EPUB, PDF, Atticus, or Vellum. Formatted for Amazon KDP upload.',
   },
 ];
 
 const plans = [
   {
-    name: 'Story Starter',
+    name: 'Spark',
     price: 'Free',
-    description: 'Perfect for trying out WorldBest',
+    description: 'Try Ember risk-free',
     features: [
-      '2 projects',
-      '10 AI prompts/day',
-      'Basic editor',
+      '1 project',
+      '10 AI generations/day',
+      'Basic steam levels (1-2)',
       'Community support',
     ],
     cta: 'Get Started',
     popular: false,
   },
   {
-    name: 'Solo Author',
-    price: '$15',
+    name: 'Flame',
+    price: '$39',
     period: '/month',
-    description: 'Everything you need as an individual writer',
+    description: 'Everything for indie authors',
     features: [
-      '10 projects',
-      'Unlimited AI prompts',
-      'Full export capabilities',
-      'Priority support',
-      'Advanced analytics',
+      '5 projects',
+      'Unlimited AI generations',
+      'All 5 steam levels',
+      'Voice fingerprinting',
+      'Beat sheet templates',
+      'KDP export',
     ],
     cta: 'Start Free Trial',
     popular: true,
   },
   {
-    name: 'Pro Creator',
-    price: '$35',
+    name: 'Inferno',
+    price: '$79',
     period: '/month',
-    description: 'For professional writers and content creators',
+    description: 'For prolific authors & agencies',
     features: [
       'Unlimited projects',
-      'Voice & OCR input',
-      'Advanced analytics',
-      'Custom AI models',
+      'Team seats (up to 5)',
+      'Custom voice profiles',
+      'Priority AI queue',
       'API access',
+      'White-label export',
     ],
     cta: 'Start Free Trial',
     popular: false,
@@ -101,21 +105,21 @@ const plans = [
 
 const testimonials = [
   {
-    name: 'Sarah Chen',
-    role: 'Fantasy Author',
-    content: 'WorldBest transformed my writing process. The AI personas are like having three writing coaches available 24/7.',
+    name: 'Cassandra Blake',
+    role: 'Romantasy Author',
+    content: 'Ember finally gets what we write. The steam calibration is a game-changer - no more fighting with AI that wants to fade to black.',
     rating: 5,
   },
   {
-    name: 'Marcus Rodriguez',
-    role: 'Sci-Fi Writer',
-    content: 'The worldbuilding tools are incredible. I can track everything from languages to economies in one place.',
+    name: 'Raven Sterling',
+    role: 'Dark Romance Writer',
+    content: 'The beat sheet templates saved me months of plotting. My tension arcs have never been tighter.',
     rating: 5,
   },
   {
-    name: 'Emily Johnson',
-    role: 'Romance Novelist',
-    content: 'The character relationship mapping helped me create more compelling romantic tension in my stories.',
+    name: 'Luna Blackwood',
+    role: 'Paranormal Romance Author',
+    content: 'Voice fingerprinting is magic. My AI-assisted scenes are indistinguishable from what I write myself.',
     rating: 5,
   },
 ];
@@ -131,8 +135,8 @@ export function LandingPage() {
         <div className="container flex h-16 items-center">
           <div className="mr-4 flex">
             <Link href="/" className="mr-6 flex items-center space-x-2">
-              <BookOpen className="h-6 w-6" />
-              <span className="font-bold">WorldBest</span>
+              <Flame className="h-6 w-6" />
+              <span className="font-bold">Ember</span>
             </Link>
           </div>
           
@@ -179,8 +183,8 @@ export function LandingPage() {
           <div className="fixed inset-0 z-50 bg-background md:hidden">
             <div className="container flex h-16 items-center justify-between border-b">
               <Link href="/" className="flex items-center space-x-2">
-                <BookOpen className="h-6 w-6" />
-                <span className="font-bold">WorldBest</span>
+                <Flame className="h-6 w-6" />
+                <span className="font-bold">Ember</span>
               </Link>
               <Button
                 variant="ghost"
@@ -244,14 +248,14 @@ export function LandingPage() {
       <section className="container space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
         <div className="mx-auto flex max-w-[980px] flex-col items-center gap-2 text-center">
           <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-6xl lg:leading-[1.1]">
-            The AI-Powered Writing Platform for{' '}
-            <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              Storytellers
+            The Only AI Writing Platform Built for{' '}
+            <span className="bg-gradient-to-r from-rose-500 to-amber-500 bg-clip-text text-transparent">
+              Steamy Romantasy
             </span>
           </h1>
           <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">
-            Create compelling stories with comprehensive worldbuilding tools, AI-assisted writing, 
-            and seamless collaboration. From idea to publication.
+            Stop fighting with generic AI. Ember understands trope beats, calibrates steam levels,
+            matches your voice, and exports KDP-ready files. From beat sheet to published book.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <Button size="lg" onClick={() => setAuthModal('signup')}>
@@ -270,11 +274,11 @@ export function LandingPage() {
       <section id="features" className="container space-y-6 bg-slate-50 py-8 dark:bg-transparent md:py-12 lg:py-24">
         <div className="mx-auto flex max-w-[980px] flex-col items-center gap-4 text-center">
           <h2 className="text-3xl font-bold leading-tight tracking-tighter md:text-5xl">
-            Everything you need to craft amazing stories
+            Built for romance authors, by romance readers
           </h2>
           <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">
-            From worldbuilding to publication, WorldBest provides all the tools you need 
-            in one integrated platform.
+            Every feature designed around how romantasy authors actually write.
+            No more workarounds. No more content filters fighting you.
           </p>
         </div>
         <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
@@ -350,10 +354,10 @@ export function LandingPage() {
       <section id="testimonials" className="container space-y-6 bg-slate-50 py-8 dark:bg-transparent md:py-12 lg:py-24">
         <div className="mx-auto flex max-w-[980px] flex-col items-center gap-4 text-center">
           <h2 className="text-3xl font-bold leading-tight tracking-tighter md:text-5xl">
-            Loved by writers worldwide
+            Loved by romantasy authors
           </h2>
           <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">
-            See what authors are saying about WorldBest.
+            See what indie authors are saying about Ember.
           </p>
         </div>
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
@@ -384,10 +388,10 @@ export function LandingPage() {
       <section className="container space-y-6 py-8 md:py-12 lg:py-24">
         <div className="mx-auto flex max-w-[980px] flex-col items-center gap-4 text-center">
           <h2 className="text-3xl font-bold leading-tight tracking-tighter md:text-5xl">
-            Ready to start your writing journey?
+            Ready to write your next bestseller?
           </h2>
           <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">
-            Join thousands of authors who are already using WorldBest to create amazing stories.
+            Join thousands of romantasy authors shipping books faster with Ember.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <Button size="lg" onClick={() => setAuthModal('signup')}>
@@ -405,17 +409,13 @@ export function LandingPage() {
       <footer className="border-t bg-background">
         <div className="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
           <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-            <BookOpen className="h-6 w-6" />
+            <Flame className="h-6 w-6" />
             <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
               Built by{' '}
               <Link href="#" className="font-medium underline underline-offset-4">
-                WorldBest Team
+                88Away LLC
               </Link>
-              . The source code is available on{' '}
-              <Link href="#" className="font-medium underline underline-offset-4">
-                GitHub
-              </Link>
-              .
+              . Ember is a trademark of 88Away LLC.
             </p>
           </div>
         </div>

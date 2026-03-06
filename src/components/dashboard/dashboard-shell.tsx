@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Button } from '@worldbest/ui-components';
+import { Button } from '@ember/ui-components';
 import { 
-  BookOpen, 
+  Flame, 
   Users, 
   Map, 
   Sparkles, 
@@ -21,17 +21,20 @@ import {
   User,
   LogOut,
   CreditCard,
-  HelpCircle
+  HelpCircle,
+  BookHeart,
+  Thermometer,
+  FileEdit
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
-import { cn } from '@worldbest/ui-components';
+import { cn } from '@ember/ui-components';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Projects', href: '/projects', icon: BookOpen },
-  { name: 'Characters', href: '/characters', icon: Users },
-  { name: 'Worldbuilding', href: '/worldbuilding', icon: Map },
-  { name: 'AI Assistant', href: '/ai', icon: Sparkles },
+  { name: 'Projects', href: '/projects', icon: Flame },
+  { name: 'Series Bible', href: '/bible', icon: BookHeart },
+  { name: 'Beat Sheets', href: '/beats', icon: FileEdit },
+  { name: 'AI Studio', href: '/ai', icon: Sparkles },
   { name: 'Export', href: '/export', icon: FileText },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
@@ -76,8 +79,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           {/* Logo */}
           <div className="flex h-16 items-center justify-between px-4 border-b">
             <Link href="/dashboard" className="flex items-center space-x-2">
-              <BookOpen className="h-6 w-6" />
-              <span className="text-lg font-bold">WorldBest</span>
+              <Flame className="h-6 w-6 text-rose-500" />
+              <span className="text-lg font-bold">Ember</span>
             </Link>
             <Button
               variant="ghost"

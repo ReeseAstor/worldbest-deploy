@@ -2,9 +2,9 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User } from '@worldbest/shared-types';
+import { User } from '@ember/shared-types';
 import { authApi } from '@/lib/api/auth';
-import { useToast } from '@worldbest/ui-components';
+import { useToast } from '@ember/ui-components';
 
 interface AuthContextType {
   user: User | null;
