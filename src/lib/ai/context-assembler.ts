@@ -281,6 +281,50 @@ Focus on:
 - Romance arc alignment with chosen template
 - Tension and conflict balance
 Provide specific, actionable suggestions.`,
+
+    'continuity-check': `${basePrompt}
+
+Your task is to check for continuity errors in the manuscript.
+Focus on:
+- Timeline consistency
+- Character detail consistency (eye color, names, relationships)
+- Location details matching descriptions
+- Plot thread continuity
+- Previously established facts
+List any inconsistencies found with specific references.`,
+
+    'blurb-generation': `${basePrompt}
+
+Your task is to write compelling marketing copy for this romance.
+Focus on:
+- Hook the reader with the central conflict
+- Highlight the romantic tension
+- Match the heat level expectations for this subgenre
+- Include relevant trope signals
+- Keep it concise and enticing
+Target length: 150-250 words.`,
+
+    'voice-analysis': `${basePrompt}
+
+Your task is to analyze the author's writing voice.
+Focus on:
+- Sentence structure patterns
+- Vocabulary preferences and complexity
+- Dialogue vs. narrative ratio
+- POV depth and interiority style
+- Pacing tendencies
+- Distinctive stylistic markers
+Provide quantified metrics where possible.`,
+
+    'summarization': `${basePrompt}
+
+Your task is to create a concise summary of the provided text.
+Focus on:
+- Key plot events
+- Character emotional states
+- Relationship developments
+- Important details for continuity
+Keep the summary brief but comprehensive.`,
   };
 
   return taskPrompts[taskType] || basePrompt;

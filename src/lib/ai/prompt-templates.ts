@@ -175,6 +175,115 @@ OUTPUT FORMAT:
 Provide specific, actionable feedback organized by category.
 Include line references where applicable.
 Suggest concrete revisions, not just problems.`,
+
+  'continuity-check': `TASK: Check continuity and consistency
+
+Your role is to identify any continuity errors or inconsistencies in the manuscript.
+
+CHECK FOR:
+1. TIMELINE
+   - Do events happen in logical order?
+   - Are time references consistent?
+   - Do "X days later" references add up?
+
+2. CHARACTER DETAILS
+   - Eye color, hair color, height consistency
+   - Name spelling variations
+   - Age and birthday consistency
+   - Relationship status accuracy
+
+3. LOCATIONS
+   - Room/building layouts matching descriptions
+   - Travel times between locations
+   - Geographic accuracy
+
+4. PLOT THREADS
+   - Are all subplots accounted for?
+   - Are setup elements paid off?
+   - Are character knowledge states accurate?
+
+OUTPUT FORMAT:
+List each issue with:
+- Type of inconsistency
+- Location in text
+- The conflicting details
+- Suggested resolution`,
+
+  'blurb-generation': `TASK: Write marketing copy
+
+Your role is to create compelling book blurb/description for this romance.
+
+BLURB STRUCTURE:
+1. HOOK (1-2 sentences) - Grab attention with conflict or unique premise
+2. SETUP (2-3 sentences) - Introduce protagonist and their world
+3. LOVE INTEREST (1-2 sentences) - Introduce the romantic lead and the spark
+4. CONFLICT (2-3 sentences) - The obstacles keeping them apart
+5. STAKES (1 sentence) - What they risk for love
+6. TEASE (1 sentence) - Leave them wanting more
+
+TONE REQUIREMENTS:
+- Match the heat level of the book
+- Use trope keywords naturally
+- Create emotional resonance
+- Build romantic tension
+
+OUTPUT:
+A polished blurb of 150-250 words ready for retail platforms.`,
+
+  'voice-analysis': `TASK: Analyze author voice
+
+Your role is to create a detailed fingerprint of this author's writing style.
+
+ANALYSIS DIMENSIONS:
+1. SENTENCE STRUCTURE
+   - Average sentence length
+   - Simple vs. complex sentence ratio
+   - Paragraph length patterns
+   - Use of fragments
+
+2. VOCABULARY
+   - Complexity level
+   - Favorite words/phrases
+   - Avoided words
+   - Period-appropriate language use
+
+3. DIALOGUE PATTERNS
+   - Dialogue to narrative ratio
+   - Tag preferences (said, asked, etc.)
+   - Dialect/accent representation
+   - Internal vs. spoken thought ratio
+
+4. POV DEPTH
+   - Deep POV frequency
+   - Narrative distance patterns
+   - Character interiority style
+   - Show vs. tell balance
+
+5. RHYTHM & PACING
+   - Scene length patterns
+   - Tension building style
+   - Transition preferences
+   - Action vs. reflection balance
+
+OUTPUT:
+Quantified metrics where possible plus qualitative observations.`,
+
+  'summarization': `TASK: Summarize content
+
+Your role is to create a concise but comprehensive summary of the provided text.
+
+SUMMARY SHOULD INCLUDE:
+1. KEY PLOT EVENTS - What happened (action beats)
+2. EMOTIONAL STATES - How characters feel at the end
+3. RELATIONSHIP STATUS - Where the romance stands
+4. IMPORTANT DETAILS - Facts needed for continuity
+5. UNRESOLVED THREADS - What's still in play
+
+OUTPUT FORMAT:
+- Keep to 150-300 words
+- Use present tense
+- Focus on story-relevant information
+- Highlight anything with continuity implications`,
 };
 
 /**
