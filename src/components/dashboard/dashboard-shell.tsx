@@ -24,7 +24,10 @@ import {
   HelpCircle,
   BookHeart,
   Thermometer,
-  FileEdit
+  FileEdit,
+  Mic2,
+  Download,
+  Target
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
 import { cn } from '@ember/ui-components';
@@ -33,9 +36,10 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Projects', href: '/projects', icon: Flame },
   { name: 'Series Bible', href: '/bible', icon: BookHeart },
-  { name: 'Beat Sheets', href: '/beats', icon: FileEdit },
+  { name: 'Beat Sheets', href: '/beats', icon: Target },
+  { name: 'Voice Profile', href: '/voice', icon: Mic2 },
   { name: 'AI Studio', href: '/ai', icon: Sparkles },
-  { name: 'Export', href: '/export', icon: FileText },
+  { name: 'Export', href: '/export', icon: Download },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 

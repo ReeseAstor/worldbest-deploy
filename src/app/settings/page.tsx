@@ -35,7 +35,11 @@ import {
   Zap,
   Crown,
   Settings,
-  Camera
+  Camera,
+  Flame,
+  Mic2,
+  BookHeart,
+  PenTool
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
 
@@ -106,7 +110,10 @@ const plans = [
 export default function SettingsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'billing' | 'notifications' | 'preferences' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'billing' | 'notifications' | 'preferences' | 'security' | 'writing'>('profile');
+    const [steamLevel, setSteamLevel] = useState(3);
+    const [voiceProfileEnabled, setVoiceProfileEnabled] = useState(true);
+    const [deviationThreshold, setDeviationThreshold] = useState(15);
   const [loading, setLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
@@ -196,6 +203,7 @@ export default function SettingsPage() {
               <TabButton id="notifications" label="Notifications" icon={Bell} />
               <TabButton id="preferences" label="Preferences" icon={Palette} />
               <TabButton id="security" label="Security" icon={Shield} />
+              <TabButton id="writing" label="Writing & AI" icon={PenTool} />
             </CardContent>
           </Card>
 
@@ -687,6 +695,191 @@ export default function SettingsPage() {
                 <Button>Save Preferences</Button>
               </CardContent>
             </Card>
+          )}
+
+          {/* Writing & AI Tab (Ember-specific) */}
+          {activeTab === 'writing' && (
+            <>
+              {/* Steam Level Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Flame className="h-5 w-5 text-rose-500" />
+                    Steam Level
+                  </CardTitle>
+                  <CardDescription>
+                    Set your default heat level for AI-generated romantic content
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Default Steam Level</span>
+                      <span className="text-sm text-muted-foreground">
+                        {steamLevel === 1 && 'Closed Door'}
+                        {steamLevel === 2 && 'Warm'}
+                        {steamLevel === 3 && 'Steamy'}
+                        {steamLevel === 4 && 'Spicy'}
+                        {steamLevel === 5 && 'Scorching'}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={5}
+                      value={steamLevel}
+                      onChange={(e) => setSteamLevel(parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>1 - Closed Door</span>
+                      <span>2 - Warm</span>
+                      <span>3 - Steamy</span>
+                      <span>4 - Spicy</span>
+                      <span>5 - Scorching</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-5 gap-2">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <button
+                        key={level}
+                        onClick={() => setSteamLevel(level)}
+                        className={`
+                          p-3 rounded-lg border-2 text-center transition-all
+                          ${steamLevel === level
+                            ? 'border-rose-500 bg-rose-50 dark:bg-rose-950'
+                            : 'border-border hover:border-rose-300'
+                          }
+                        `}
+                      >
+                        <Flame className={`h-5 w-5 mx-auto mb-1 ${
+                          level >= 4 ? 'text-red-500' : level >= 2 ? 'text-rose-400' : 'text-slate-400'
+                        }`} />
+                        <span className="text-xs">{level}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    This sets the default for new projects. You can override this per-project.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Voice Profile Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mic2 className="h-5 w-5 text-violet-500" />
+                    Voice Fingerprinting
+                  </CardTitle>
+                  <CardDescription>
+                    Configure how AI matches your unique writing style
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Enable Voice Matching</p>
+                      <p className="text-sm text-muted-foreground">
+                        AI will try to match your writing style
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setVoiceProfileEnabled(!voiceProfileEnabled)}
+                      className={`w-12 h-6 rounded-full transition-colors ${
+                        voiceProfileEnabled ? 'bg-violet-500' : 'bg-gray-200'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                        voiceProfileEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {voiceProfileEnabled && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium">Deviation Threshold</label>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          How much can AI deviate from your voice before being flagged?
+                        </p>
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="range"
+                            min={5}
+                            max={30}
+                            value={deviationThreshold}
+                            onChange={(e) => setDeviationThreshold(parseInt(e.target.value))}
+                            className="flex-1"
+                          />
+                          <span className="text-lg font-medium w-12">{deviationThreshold}%</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                          <span>Strict matching</span>
+                          <span>More creative freedom</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Genre Preferences */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookHeart className="h-5 w-5 text-rose-500" />
+                    Genre Preferences
+                  </CardTitle>
+                  <CardDescription>
+                    Configure AI knowledge of romantasy conventions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Preferred Beat Sheet</label>
+                    <select className="w-full px-3 py-2 border rounded-md bg-background">
+                      <option value="romancing-the-beat">Romancing the Beat</option>
+                      <option value="save-the-cat-romance">Save the Cat! Romance</option>
+                      <option value="dark-romance-arc">Dark Romance Arc</option>
+                      <option value="epic-fantasy-romance">Epic Fantasy Romance</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Default POV Depth</label>
+                    <select className="w-full px-3 py-2 border rounded-md bg-background">
+                      <option value="shallow">Shallow (External observations)</option>
+                      <option value="medium">Medium (Some interiority)</option>
+                      <option value="deep">Deep (Full internal access)</option>
+                      <option value="deep-omniscient">Deep Omniscient (Multiple POVs)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Favorite Tropes</label>
+                    <p className="text-xs text-muted-foreground">
+                      AI will prioritize these in suggestions
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {['Enemies to Lovers', 'Forced Proximity', 'Fated Mates', 'Slow Burn', 'Found Family', 'Grumpy/Sunshine'].map((trope) => (
+                        <button
+                          key={trope}
+                          className="px-3 py-1 text-xs rounded-full border hover:bg-rose-50 hover:border-rose-300 transition-colors"
+                        >
+                          {trope}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Button className="bg-rose-500 hover:bg-rose-600">Save Writing Preferences</Button>
+            </>
           )}
 
           {/* Security Tab */}
