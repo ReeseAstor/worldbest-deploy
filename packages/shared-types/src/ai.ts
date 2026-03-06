@@ -1,4 +1,7 @@
-// AI and Generation Types
+// AI and Generation Types for Ember - Romantasy AI Orchestration
+
+import { SteamLevelValue, SteamPromptModifiers } from './steam';
+import { VoicePromptConstraints } from './voice';
 
 export interface AIGenerationRequest {
   intent: AIIntent;
@@ -8,6 +11,12 @@ export interface AIGenerationRequest {
   params: AIGenerationParams;
   safety_overrides?: SafetyOverrides;
   idempotency_key?: string;
+  /** Steam level for this generation */
+  steamLevel?: SteamLevelValue;
+  /** Voice profile ID for voice matching */
+  voiceProfileId?: string;
+  /** Context window configuration */
+  contextConfig?: ContextWindowConfig;
 }
 
 export interface ContextReference {
@@ -27,7 +36,13 @@ export enum ContextType {
   CULTURE = 'culture',
   TIMELINE = 'timeline',
   STYLE_PROFILE = 'style_profile',
-  TEXT_VERSION = 'text_version'
+  TEXT_VERSION = 'text_version',
+  // Ember-specific context types
+  SERIES_BIBLE = 'series_bible',
+  BEAT_SHEET = 'beat_sheet',
+  VOICE_PROFILE = 'voice_profile',
+  RELATIONSHIP = 'relationship',
+  CONTINUITY_RULE = 'continuity_rule'
 }
 
 export enum AIIntent {
@@ -43,6 +58,13 @@ export enum AIIntent {
   EXPAND_WORLDBUILDING = 'expand_worldbuilding',
   SUGGEST_PLOT = 'suggest_plot',
   
+  // Ember-specific Muse intents
+  GENERATE_STEAM_SCENE = 'generate_steam_scene',
+  INCREASE_HEAT = 'increase_heat',
+  DECREASE_HEAT = 'decrease_heat',
+  WRITE_TENSION = 'write_tension',
+  WRITE_BANTER = 'write_banter',
+  
   // Editor intents
   REVISE_TEXT = 'revise_text',
   IMPROVE_DIALOGUE = 'improve_dialogue',
@@ -53,6 +75,11 @@ export enum AIIntent {
   PACING_ADJUST = 'pacing_adjust',
   ANALYZE_TEXT = 'analyze_text',
   
+  // Ember-specific Editor intents
+  VOICE_MATCH = 'voice_match',
+  STEAM_CALIBRATE = 'steam_calibrate',
+  TROPE_ENHANCE = 'trope_enhance',
+  
   // Coach intents
   PLOT_OUTLINE = 'plot_outline',
   CHARACTER_ARC = 'character_arc',
@@ -60,12 +87,23 @@ export enum AIIntent {
   CONFLICT_ANALYSIS = 'conflict_analysis',
   THEME_EXPLORATION = 'theme_exploration',
   
+  // Ember-specific Coach intents
+  ROMANCE_ARC_ANALYSIS = 'romance_arc_analysis',
+  TENSION_PACING = 'tension_pacing',
+  TROPE_EXECUTION = 'trope_execution',
+  DEVELOPMENTAL_EDIT = 'developmental_edit',
+  
   // Hybrid intents
   SUMMARIZE = 'summarize',
   ANALYZE = 'analyze',
   SUGGEST_NEXT = 'suggest_next',
   WORLDBUILD = 'worldbuild',
-  FACT_CHECK = 'fact_check'
+  FACT_CHECK = 'fact_check',
+  
+  // Export intents
+  GENERATE_BLURB = 'generate_blurb',
+  GENERATE_KEYWORDS = 'generate_keywords',
+  GENERATE_TAGLINE = 'generate_tagline'
 }
 
 export enum AIPersona {
@@ -380,4 +418,227 @@ export interface AICache {
   created_at: Date;
   expires_at: Date;
   last_accessed: Date;
+}
+
+// ============================================================================
+// EMBER-SPECIFIC: Context Window Management
+// ============================================================================
+
+/**
+ * Context window configuration for managing large manuscripts.
+ * Romantasy manuscripts run 80k-120k words, requiring careful context management.
+ */
+export interface ContextWindowConfig {
+  /** Maximum tokens for immediate context */
+  immediateContextTokens: number;
+  /** Maximum tokens for retrieved context */
+  retrievedContextTokens: number;
+  /** Maximum tokens for global context */
+  globalContextTokens: number;
+  /** Whether to include chapter summaries */
+  includeChapterSummaries: boolean;
+  /** Whether to include character sheets for involved characters */
+  includeCharacterSheets: boolean;
+  /** Maximum characters to include context for */
+  maxCharactersInContext: number;
+}
+
+/** Assembled context ready for AI generation */
+export interface AssembledContext {
+  /** Immediate context: current chapter + preceding text */
+  immediate: ImmediateContext;
+  /** Retrieved context: relevant bible entries via vector search */
+  retrieved: RetrievedContext;
+  /** Global context: rolling manuscript summary */
+  global: GlobalContext;
+  /** Total estimated tokens */
+  estimatedTokens: number;
+  /** Context hash for caching */
+  hash: string;
+}
+
+/** Immediate context tier */
+export interface ImmediateContext {
+  /** Current chapter content */
+  currentChapter: string;
+  /** Preceding text (up to token limit) */
+  precedingText: string;
+  /** Scene metadata */
+  sceneMetadata: {
+    pov: string;
+    location: string;
+    characters: string[];
+    mood?: string;
+    heatLevel?: number;
+  };
+  /** Token count */
+  tokens: number;
+}
+
+/** Retrieved context tier via vector search */
+export interface RetrievedContext {
+  /** Retrieved character sheets */
+  characters: RetrievedCharacter[];
+  /** Retrieved location descriptions */
+  locations: RetrievedLocation[];
+  /** Retrieved relationship dynamics */
+  relationships: RetrievedRelationship[];
+  /** Retrieved continuity rules */
+  continuityRules: RetrievedContinuityRule[];
+  /** Retrieved timeline events */
+  timelineEvents: RetrievedTimelineEvent[];
+  /** Token count */
+  tokens: number;
+}
+
+export interface RetrievedCharacter {
+  id: string;
+  name: string;
+  relevantFields: string;
+  similarityScore: number;
+}
+
+export interface RetrievedLocation {
+  id: string;
+  name: string;
+  description: string;
+  similarityScore: number;
+}
+
+export interface RetrievedRelationship {
+  character1: string;
+  character2: string;
+  type: string;
+  currentStage: string;
+  dynamics: string;
+  similarityScore: number;
+}
+
+export interface RetrievedContinuityRule {
+  id: string;
+  rule: string;
+  affectedCharacters: string[];
+  priority: 'must' | 'should' | 'may';
+}
+
+export interface RetrievedTimelineEvent {
+  id: string;
+  date: string;
+  description: string;
+  relevance: number;
+}
+
+/** Global context tier */
+export interface GlobalContext {
+  /** Rolling manuscript summary */
+  manuscriptSummary: string;
+  /** Story-so-far summary */
+  storySoFar: string;
+  /** Romance arc status */
+  romanceArcStatus: {
+    currentStage: string;
+    tensionLevel: number;
+    lastMajorBeat: string;
+  };
+  /** Token count */
+  tokens: number;
+}
+
+// ============================================================================
+// EMBER-SPECIFIC: Model Routing
+// ============================================================================
+
+/** Task types for model routing */
+export type AITaskType = 
+  | 'creative-drafting'
+  | 'steam-scene'
+  | 'line-editing'
+  | 'continuity-check'
+  | 'developmental-edit'
+  | 'blurb-generation'
+  | 'voice-analysis'
+  | 'summarization';
+
+/** Model routing decision */
+export interface ModelRoutingDecision {
+  taskType: AITaskType;
+  selectedModel: string;
+  provider: AIProvider;
+  tier: 'draft' | 'polish' | 'premium';
+  reasoning: string;
+  estimatedCost: number;
+  estimatedLatency: number;
+}
+
+/** Model routing configuration */
+export interface ModelRoutingConfig {
+  /** Model preferences by task type */
+  taskModelPreferences: Record<AITaskType, string[]>;
+  /** Cost threshold for automatic downgrade */
+  costThreshold: number;
+  /** Whether to allow model fallback on error */
+  allowFallback: boolean;
+  /** Fallback model */
+  fallbackModel: string;
+}
+
+// ============================================================================
+// EMBER-SPECIFIC: Prompt Assembly
+// ============================================================================
+
+/** Complete prompt assembly for generation */
+export interface AssembledPrompt {
+  /** System prompt with all context injected */
+  systemPrompt: string;
+  /** User prompt */
+  userPrompt: string;
+  /** Steam calibration modifiers */
+  steamModifiers?: SteamPromptModifiers;
+  /** Voice profile constraints */
+  voiceConstraints?: VoicePromptConstraints;
+  /** Total estimated tokens */
+  estimatedTokens: number;
+}
+
+/** Prompt assembly options */
+export interface PromptAssemblyOptions {
+  /** Steam level for generation */
+  steamLevel: SteamLevelValue;
+  /** Voice profile ID */
+  voiceProfileId?: string;
+  /** Beat being executed */
+  beatRef?: string;
+  /** Tropes to emphasize */
+  tropeRefs?: string[];
+  /** Custom instructions */
+  customInstructions?: string;
+}
+
+// ============================================================================
+// EMBER-SPECIFIC: Generation Response Extensions
+// ============================================================================
+
+/** Extended AI response for Ember */
+export interface EmberGenerationResponse extends AIGenerationResponse {
+  /** Steam level of generated content */
+  detectedSteamLevel?: SteamLevelValue;
+  /** Voice deviation score */
+  voiceDeviationScore?: number;
+  /** Continuity warnings */
+  continuityWarnings?: ContinuityWarning[];
+  /** Trope execution notes */
+  tropeNotes?: TropeExecutionNote[];
+}
+
+export interface ContinuityWarning {
+  type: 'character' | 'timeline' | 'world' | 'relationship';
+  description: string;
+  severity: 'info' | 'warning' | 'error';
+  suggestion?: string;
+}
+
+export interface TropeExecutionNote {
+  tropeId: string;
+  executionQuality: 'weak' | 'moderate' | 'strong';
+  suggestion?: string;
 }

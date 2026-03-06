@@ -1,4 +1,8 @@
-// Core Entity Types for WorldBest Platform
+// Core Entity Types for Ember Platform - AI-Powered Romantasy Ghostwriting
+
+import { SteamLevelValue, SteamSettings, SceneSteamOverride } from './steam';
+import { VoiceProfile as AuthorVoiceProfile } from './voice';
+import { BeatSheet, TropeSelection } from './beat-sheets';
 
 export interface BaseEntity {
   id: string;
@@ -10,11 +14,21 @@ export interface Project extends BaseEntity {
   owner_id: string;
   title: string;
   synopsis?: string;
-  genre: string;
+  genre: RomantasySubgenre;
   style_profile_id?: string;
   settings: ProjectSettings;
   collaborators: ProjectCollaborator[];
   metadata: Record<string, any>;
+  /** Steam calibration settings */
+  steamSettings: SteamSettings;
+  /** Author voice profile reference */
+  voiceProfileId?: string;
+  /** Beat sheet reference */
+  beatSheetId?: string;
+  /** Selected tropes for this project */
+  tropeSelections?: TropeSelection[];
+  /** Series information if part of a series */
+  seriesInfo?: SeriesInfo;
 }
 
 export interface ProjectSettings {
@@ -31,6 +45,29 @@ export interface AIPreferences {
   temperature_draft: number;
   temperature_polish: number;
   max_tokens_per_generation: number;
+  /** Default steam level for AI generations */
+  defaultSteamLevel: SteamLevelValue;
+  /** Voice matching strictness (0-1) */
+  voiceMatchingStrictness: number;
+}
+
+/** Romantasy subgenre classification */
+export type RomantasySubgenre = 
+  | 'romantasy'
+  | 'paranormal-romance'
+  | 'dark-romance'
+  | 'contemporary-romance'
+  | 'historical-romance'
+  | 'romantic-suspense'
+  | 'fantasy-romance'
+  | 'sci-fi-romance';
+
+/** Series information */
+export interface SeriesInfo {
+  seriesId: string;
+  seriesName: string;
+  bookNumber: number;
+  totalPlannedBooks?: number;
 }
 
 export interface ProjectCollaborator {
@@ -73,6 +110,12 @@ export interface Scene extends BaseEntity {
   mood?: string;
   conflict?: string;
   resolution?: string;
+  /** Scene-specific heat level override */
+  steamOverride?: SceneSteamOverride;
+  /** Beat reference if mapped to beat sheet */
+  beatRef?: string;
+  /** Tropes being executed in this scene */
+  tropeRefs?: string[];
 }
 
 export interface Character extends BaseEntity {
@@ -91,8 +134,51 @@ export interface Character extends BaseEntity {
   backstory?: string;
   relationships: Relationship[];
   arc?: CharacterArc;
-  voice_profile?: VoiceProfile;
+  voice_profile?: CharacterVoiceProfile;
   images?: string[];
+  /** Character role in romance */
+  romanceRole?: RomanceRole;
+  /** Speech patterns for dialogue generation */
+  speechPatterns?: SpeechPatterns;
+  /** POV voice notes for when this character is the narrator */
+  povVoiceNotes?: string;
+  /** Romance-specific attributes */
+  romanceAttributes?: RomanceAttributes;
+}
+
+/** Character role in the romance */
+export type RomanceRole = 'FMC' | 'MMC' | 'love-interest' | 'rival' | 'best-friend' | 'antagonist' | 'supporting';
+
+/** Speech patterns for dialogue consistency */
+export interface SpeechPatterns {
+  /** Common phrases or verbal tics */
+  catchphrases: string[];
+  /** How they express emotion */
+  emotionalExpressions: Record<string, string[]>;
+  /** Formality level in speech */
+  formality: 'casual' | 'neutral' | 'formal';
+  /** Dialect or accent notes */
+  dialectNotes?: string;
+  /** Common curse words or exclamations */
+  exclamations?: string[];
+}
+
+/** Romance-specific character attributes */
+export interface RomanceAttributes {
+  /** Love language */
+  loveLanguage?: 'words' | 'acts' | 'gifts' | 'time' | 'touch';
+  /** Attachment style */
+  attachmentStyle?: 'secure' | 'anxious' | 'avoidant' | 'disorganized';
+  /** Past relationship baggage */
+  relationshipBaggage?: string[];
+  /** What they need in a partner */
+  partnerNeeds?: string[];
+  /** Dealbreakers in relationships */
+  dealbreakers?: string[];
+  /** How they show affection */
+  affectionStyle?: string;
+  /** Intimacy comfort level notes */
+  intimacyNotes?: string;
 }
 
 export interface AppearanceDetails {
@@ -129,7 +215,36 @@ export interface Relationship {
   dynamics?: string;
   history?: string;
   tension_points?: string[];
+  /** Romance-specific: relationship evolution per book */
+  evolution?: RelationshipEvolution[];
+  /** Power dynamic in the relationship */
+  powerDynamic?: 'equal' | 'dominant' | 'submissive' | 'shifting';
 }
+
+/** Tracks how a relationship evolves across the story/series */
+export interface RelationshipEvolution {
+  bookNumber: number;
+  chapterRange?: { start: number; end: number };
+  stage: RelationshipStage;
+  keyMoments: string[];
+  emotionalState: string;
+}
+
+/** Stages of romantic relationship development */
+export type RelationshipStage = 
+  | 'strangers'
+  | 'enemies'
+  | 'acquaintances'
+  | 'tension'
+  | 'attraction'
+  | 'denial'
+  | 'first-kiss'
+  | 'exploration'
+  | 'commitment'
+  | 'conflict'
+  | 'separation'
+  | 'reconciliation'
+  | 'hea';
 
 export interface CharacterArc {
   starting_point: string;
@@ -139,7 +254,7 @@ export interface CharacterArc {
   resolution: string;
 }
 
-export interface VoiceProfile {
+export interface CharacterVoiceProfile {
   vocabulary_level: 'simple' | 'moderate' | 'complex';
   speech_patterns: string[];
   catchphrases: string[];
