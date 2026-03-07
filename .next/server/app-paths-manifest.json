@@ -1,16 +1,3 @@
 {
-  "/ai/page": "app/ai/page.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/beats/page": "app/beats/page.js",
-  "/analytics/page": "app/analytics/page.js",
-  "/page": "app/page.js",
-  "/characters/page": "app/characters/page.js",
-  "/projects/new/page": "app/projects/new/page.js",
-  "/export/page": "app/export/page.js",
-  "/projects/[id]/write/page": "app/projects/[id]/write/page.js",
-  "/voice/page": "app/voice/page.js",
-  "/bible/page": "app/bible/page.js",
-  "/settings/page": "app/settings/page.js",
-  "/projects/page": "app/projects/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/page": "app/page.js"
 }
