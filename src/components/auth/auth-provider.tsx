@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@ember/ui-components';
@@ -38,10 +38,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
   const supabase = createClient();
+  const initializedRef = useRef(false);
 
-  // Initialize auth state and listen for changes
+  // Initialize auth state
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -54,26 +56,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Auth initialization error:', error);
       } finally {
         setLoading(false);
+        initializedRef.current = true;
       }
     };
 
     initAuth();
+  }, [supabase]);
 
-    // Listen for auth changes
+  // Listen for auth changes (separate effect)
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth event:', event);
+        
         if (event === 'SIGNED_IN' && session?.user) {
           setUser(mapSupabaseUser(session.user));
-          router.push('/dashboard');
+          // Only redirect if we're on the home page or auth pages
+          if (pathname === '/' || pathname?.startsWith('/auth')) {
+            router.push('/dashboard');
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           router.push('/');
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          // Just update user, don't redirect
+          setUser(mapSupabaseUser(session.user));
         }
       }
     );
 
     return () => subscription.unsubscribe();
-  }, [supabase, router]);
+  }, [supabase, router, pathname]);
 
   const login = async (email: string, password: string) => {
     try {

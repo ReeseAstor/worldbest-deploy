@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { Button } from '@ember/ui-components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@ember/ui-components';
 import {
   Sparkles,
   Flame,
@@ -18,7 +18,8 @@ import {
   Play,
   BarChart3,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Loader2
 } from 'lucide-react';
 
 interface AITask {
@@ -92,6 +93,9 @@ export default function AIStudioPage() {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [steamLevel, setSteamLevel] = useState(3);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedText, setGeneratedText] = useState<string | null>(null);
+  const { toast } = useToast();
   
   const stats: UsageStats = {
     wordsGenerated: 45230,
@@ -102,9 +106,55 @@ export default function AIStudioPage() {
 
   const usagePercent = (stats.wordsGenerated / stats.wordsLimit) * 100;
 
+  const handleStartTask = async (taskId: string) => {
+    setIsGenerating(true);
+    setGeneratedText(null);
+    
+    const taskPrompts: Record<string, string> = {
+      'creative-drafting': 'Continue this romantasy scene with vivid description and emotional depth. Write approximately 500 words.',
+      'steam-scene': `Write an intimate romantic scene at steam level ${steamLevel} (1=fade to black, 5=explicit). Focus on emotional connection and sensory details. Write approximately 500 words.`,
+      'dialogue': 'Generate compelling romantic dialogue between two characters with distinct voices. Include tension and subtext.',
+      'line-editing': 'Review and improve this prose while maintaining the author\'s voice. Focus on sentence variety, stronger verbs, and sensory details.',
+      'developmental-edit': 'Provide developmental feedback on pacing, character arcs, romantic tension, and story structure.',
+      'beat-advance': 'Write the next scene advancing toward the story beat: the first kiss moment. Build tension and anticipation.',
+    };
+
+    try {
+      const response = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task: taskId,
+          prompt: taskPrompts[taskId],
+          steamLevel,
+          voiceEnabled,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('AI generation failed');
+      }
+
+      const data = await response.json();
+      setGeneratedText(data.text);
+      
+      toast({
+        title: 'Generation complete!',
+        description: `Generated ${data.wordCount || 'content'} for ${AI_TASKS.find(t => t.id === taskId)?.name}`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Generation failed',
+        description: 'Could not connect to AI service. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
-    <DashboardShell>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -265,9 +315,25 @@ export default function AIStudioPage() {
                     </div>
                     {isSelected && (
                       <div className="mt-4 pt-4 border-t">
-                        <Button className="w-full bg-rose-500 hover:bg-rose-600">
-                          <Play className="h-4 w-4 mr-2" />
-                          Start Task
+                        <Button 
+                          className="w-full bg-rose-500 hover:bg-rose-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartTask(task.id);
+                          }}
+                          disabled={isGenerating}
+                        >
+                          {isGenerating ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Play className="h-4 w-4 mr-2" />
+                              Start Task
+                            </>
+                          )}
                         </Button>
                       </div>
                     )}
@@ -311,7 +377,33 @@ export default function AIStudioPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Generated Content */}
+        {generatedText && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-rose-500" />
+                Generated Content
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <div className="whitespace-pre-wrap bg-muted/50 p-4 rounded-lg">
+                  {generatedText}
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Button variant="outline" onClick={() => navigator.clipboard.writeText(generatedText)}>
+                  Copy to Clipboard
+                </Button>
+                <Button variant="outline" onClick={() => setGeneratedText(null)}>
+                  Dismiss
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
-    </DashboardShell>
-  );
+    );
 }
