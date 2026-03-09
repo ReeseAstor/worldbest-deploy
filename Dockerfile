@@ -1,72 +1,79 @@
 # Multi-stage Dockerfile for Next.js application
+# Optimized for production deployment with health checks and proper caching
 
 # Base stage for dependencies
 FROM node:18-alpine AS base
-RUN apk add --no-cache libc6-compat
-RUN npm install -g pnpm
+RUN apk add --no-cache libc6-compat curl
+RUN npm install -g pnpm@8.10.0
+WORKDIR /app
 
 # Dependencies stage
 FROM base AS deps
-WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
-COPY apps/web/package.json ./apps/web/
+# Copy package files for dependency installation
+COPY package.json pnpm-lock.yaml* ./
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/ui-components/package.json ./packages/ui-components/
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies with frozen lockfile for reproducible builds
+RUN pnpm install --frozen-lockfile --prefer-offline
 
 # Builder stage
 FROM base AS builder
-WORKDIR /app
 
-# Copy dependencies
+# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
-COPY --from=deps /app/packages/shared-types/node_modules ./packages/shared-types/node_modules
-COPY --from=deps /app/packages/ui-components/node_modules ./packages/ui-components/node_modules
+COPY --from=deps /app/packages ./packages
 
-# Copy source code
-COPY . .
+# Copy source code and configuration files
+COPY src ./src
+COPY public ./public
+COPY package.json pnpm-lock.yaml* next.config.js tsconfig.json ./
+COPY postcss.config.js tailwind.config.ts ./
 
-# Build shared packages first
-RUN pnpm --filter @worldbest/shared-types build
-RUN pnpm --filter @worldbest/ui-components build
+# Set build environment variables
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
 
-# Build the web application
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV NODE_ENV production
-RUN pnpm --filter @worldbest/web build
+# Build shared packages first (in order)
+WORKDIR /app/packages/shared-types
+RUN pnpm build
 
-# Production stage
-FROM base AS runner
+WORKDIR /app/packages/ui-components
+RUN pnpm build
+
+# Build the Next.js application with standalone output
 WORKDIR /app
+RUN pnpm build
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+# Production stage - minimal runtime image
+FROM base AS runner
 
-# Create non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Production environment variables
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Copy built application
-COPY --from=builder /app/apps/web/public ./apps/web/public
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
-# Set permissions for prerender cache
-RUN mkdir apps/web/.next
-RUN chown nextjs:nodejs apps/web/.next
+# Copy public assets
+COPY --from=builder /app/public ./public
 
-# Copy built files with correct ownership
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+# Copy standalone output from Next.js build
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Switch to non-root user
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+# Health check for container orchestration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
 
-CMD ["node", "apps/web/server.js"]
+# Start the Next.js application
+CMD ["node", "server.js"]

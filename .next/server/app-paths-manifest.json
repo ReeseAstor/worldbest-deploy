@@ -1,11 +1,1 @@
-{
-  "/page": "app/page.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/ai/generate/route": "app/api/ai/generate/route.js",
-  "/ai/page": "app/ai/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/beats/page": "app/beats/page.js",
-  "/voice/page": "app/voice/page.js",
-  "/projects/page": "app/projects/page.js",
-  "/export/page": "app/export/page.js"
-}
+{}
