@@ -37,6 +37,8 @@ export interface ProjectSettings {
   target_audience?: string;
   content_rating: ContentRating;
   ai_preferences: AIPreferences;
+  steam_calibration: SteamCalibration;
+  trope_stack: string[];
 }
 
 export interface AIPreferences {
@@ -93,8 +95,12 @@ export interface Chapter extends BaseEntity {
   title: string;
   summary?: string;
   target_word_count?: number;
+  word_count?: number;
   status: ChapterStatus;
   scenes: Scene[];
+  content_json?: any; // Tiptap ProseMirror JSON
+  content_text?: string; // Plain text derived from content_json
+  pov_character_id?: string;
 }
 
 export interface Scene extends BaseEntity {
@@ -570,4 +576,91 @@ export enum EconomyType {
   GIFT = 'gift',
   COMMAND = 'command',
   MARKET = 'market'
+}
+
+// =====================================================
+// Ember-Specific Types: Steam Calibration, Voice, Edits
+// =====================================================
+
+export enum HeatLevel {
+  CLOSED_DOOR = 1,
+  WARM = 2,
+  STEAMY = 3,
+  SPICY = 4,
+  SCORCHING = 5
+}
+
+export const HEAT_LEVEL_LABELS: Record<HeatLevel, string> = {
+  [HeatLevel.CLOSED_DOOR]: 'Closed Door',
+  [HeatLevel.WARM]: 'Warm',
+  [HeatLevel.STEAMY]: 'Steamy',
+  [HeatLevel.SPICY]: 'Spicy',
+  [HeatLevel.SCORCHING]: 'Scorching',
+};
+
+export const HEAT_LEVEL_DESCRIPTIONS: Record<HeatLevel, string> = {
+  [HeatLevel.CLOSED_DOOR]: 'Tension and attraction only. Scene fades to black before anything physical beyond kissing.',
+  [HeatLevel.WARM]: 'Foreplay and build-up described. The act itself is implied or briefly referenced. Literary language.',
+  [HeatLevel.STEAMY]: 'Full scenes included. Moderate explicitness. Balances emotional connection with physical description.',
+  [HeatLevel.SPICY]: 'Detailed, extended scenes. Multiple encounters per book. Kink elements may be introduced.',
+  [HeatLevel.SCORCHING]: 'No content limits within consent boundaries. Taboo elements, edge play, dark romance dynamics.',
+};
+
+export interface SteamCalibration {
+  project_heat_level: HeatLevel;
+  scene_override?: HeatLevel;
+  rendering_preferences: Partial<Record<HeatLevel, RenderingMode>>;
+}
+
+export interface AuthorVoiceProfile extends BaseEntity {
+  user_id: string;
+  name: string;
+  sample_excerpts: string[];
+  fingerprint?: VoiceFingerprint;
+  is_active: boolean;
+}
+
+export interface VoiceFingerprint {
+  sentence_length_avg: number;
+  paragraph_length_avg: number;
+  dialogue_to_narration_ratio: number;
+  metaphor_density: number;
+  sensory_word_frequency: Record<string, number>;
+  pov_tendency: 'first' | 'close_third' | 'deep_third' | 'omniscient';
+  tense_preference: 'past' | 'present';
+  vocabulary_complexity_score: number;
+  distinctive_phrases: string[];
+  avoidance_patterns: string[];
+  tone_vector: number[];
+}
+
+export enum LineEditType {
+  FILTER_WORD = 'filter_word',
+  SHOW_DONT_TELL = 'show_dont_tell',
+  DIALOGUE_TAG = 'dialogue_tag',
+  POV_INCONSISTENCY = 'pov_inconsistency',
+  PASSIVE_VOICE = 'passive_voice',
+  ADVERB_OVERUSE = 'adverb_overuse',
+  REPETITION = 'repetition'
+}
+
+export interface LineEditSuggestion extends BaseEntity {
+  chapter_id: string;
+  type: LineEditType;
+  original_text: string;
+  suggested_text: string;
+  explanation: string;
+  position: {
+    from: number;
+    to: number;
+  };
+  status: 'pending' | 'accepted' | 'rejected';
+}
+
+export interface Series extends BaseEntity {
+  user_id: string;
+  title: string;
+  genre: string;
+  subgenres: string[];
+  project_ids: string[];
 }

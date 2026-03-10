@@ -1,3 +1,4 @@
+<<<<<<< Local
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enable standalone output for Docker/production deployments
@@ -110,6 +111,63 @@ const nextConfig = {
     ];
   },
 };
+=======
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ['@ember/database'],
+  },
+  transpilePackages: ['@ember/shared-types', '@ember/ui-components'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
+      {
+        protocol: 'https', 
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000', // MinIO
+      },
+    ],
+  },
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws',
+  },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/dashboard',
+        permanent: false,
+        has: [
+          {
+            type: 'cookie',
+            key: 'auth-token',
+          },
+        ],
+      },
+    ];
+  },
+  async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${apiUrl}/:path*`,
+      },
+    ];
+  },
+};
+
+module.exports = nextConfig;
+
+>>>>>>> Remote
 
 module.exports = nextConfig;
 

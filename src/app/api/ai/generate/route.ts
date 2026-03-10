@@ -7,6 +7,53 @@ import { NextRequest, NextResponse } from 'next/server';
 const VENICE_API_KEY = process.env.VENICE_API_KEY;
 const VENICE_API_URL = process.env.VENICE_API_URL || 'https://api.venice.ai/api/v1';
 const VENICE_MODEL = process.env.VENICE_MODEL || 'olafangensan-glm-4.7-flash-heretic';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+
+// ============================================================================
+// MODEL MAPPINGS
+// ============================================================================
+
+interface ModelConfig {
+  provider: 'venice' | 'openai' | 'gemini' | 'anthropic';
+  apiModel: string;
+  maxTokens: number;
+  temperature: number;
+}
+
+const MODEL_CONFIGS: Record<string, ModelConfig> = {
+  'claude-opus': {
+    provider: 'anthropic',
+    apiModel: 'claude-sonnet-4-20250514',
+    maxTokens: 8192,
+    temperature: 0.85,
+  },
+  'claude-sonnet': {
+    provider: 'anthropic',
+    apiModel: 'claude-sonnet-4-20250514',
+    maxTokens: 8192,
+    temperature: 0.8,
+  },
+  'venice-glm': {
+    provider: 'venice',
+    apiModel: VENICE_MODEL,
+    maxTokens: 4096,
+    temperature: 0.85,
+  },
+  'openai-gpt4o': {
+    provider: 'openai',
+    apiModel: 'gpt-4o',
+    maxTokens: 4096,
+    temperature: 0.8,
+  },
+  'gemini-pro': {
+    provider: 'gemini',
+    apiModel: 'gemini-2.0-flash',
+    maxTokens: 8192,
+    temperature: 0.8,
+  },
+};
 
 // ============================================================================
 // STEAM LEVEL CONFIGURATIONS
@@ -90,6 +137,7 @@ interface GenerateRequest {
   steamLevel?: number;
   voiceEnabled?: boolean;
   wordTarget?: number;
+  model?: string;
 }
 
 // ============================================================================
@@ -107,8 +155,12 @@ export async function POST(request: NextRequest) {
       prompt, 
       steamLevel = 3, 
       voiceEnabled = true,
-      wordTarget = 500 
+      wordTarget = 500,
+      model = 'claude-opus'
     } = body;
+
+    // Get model configuration - default to Claude Opus
+    const modelConfig = MODEL_CONFIGS[model] || MODEL_CONFIGS['claude-opus'];
 
     // Validate required fields
     if (!task || !prompt) {
@@ -149,26 +201,94 @@ GENRE: Romantasy (Romance + Fantasy)
 
 Respond ONLY with the requested content. Do not include explanations, meta-commentary, or formatting instructions unless specifically asked for feedback.`;
 
-    // Call Venice AI API
-    const response = await fetch(`${VENICE_API_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${VENICE_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: VENICE_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: Math.max(wordTarget * 2, 2000),
-        temperature: task.includes('edit') || task.includes('analysis') || task.includes('check') ? 0.7 : 0.85,
-        top_p: 0.95,
-        frequency_penalty: 0.3,
-        presence_penalty: 0.3,
-      }),
-    });
+    // Call AI API based on model provider
+    let response: Response;
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: prompt },
+    ];
+    const temperature = task.includes('edit') || task.includes('analysis') || task.includes('check') ? 0.7 : modelConfig.temperature;
+
+    switch (modelConfig.provider) {
+      case 'anthropic':
+        if (!ANTHROPIC_API_KEY) throw new Error('Anthropic API key not configured');
+        response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: modelConfig.apiModel,
+            max_tokens: Math.max(wordTarget * 2, modelConfig.maxTokens),
+            system: systemPrompt,
+            messages: [{ role: 'user', content: prompt }],
+          }),
+        });
+        break;
+
+      case 'openai':
+        if (!OPENAI_API_KEY) throw new Error('OpenAI API key not configured');
+        response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: modelConfig.apiModel,
+            messages,
+            max_tokens: Math.max(wordTarget * 2, modelConfig.maxTokens),
+            temperature,
+          }),
+        });
+        break;
+
+      case 'gemini':
+        if (!GEMINI_API_KEY) throw new Error('Gemini API key not configured');
+        const geminiMessages = messages.map(m => ({
+          role: m.role === 'assistant' ? 'model' : m.role,
+          parts: [{ text: m.content }],
+        }));
+        response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${modelConfig.apiModel}:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: geminiMessages.filter(m => m.role !== 'system'),
+              systemInstruction: geminiMessages.find(m => m.role === 'system')?.parts[0],
+              generationConfig: {
+                maxOutputTokens: Math.max(wordTarget * 2, modelConfig.maxTokens),
+                temperature,
+              },
+            }),
+          }
+        );
+        break;
+
+      case 'venice':
+      default:
+        if (!VENICE_API_KEY) throw new Error('Venice API key not configured');
+        response = await fetch(`${VENICE_API_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${VENICE_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: modelConfig.apiModel,
+            messages,
+            max_tokens: Math.max(wordTarget * 2, modelConfig.maxTokens),
+            temperature,
+            top_p: 0.95,
+            frequency_penalty: 0.3,
+            presence_penalty: 0.3,
+          }),
+        });
+        break;
+    }
 
     // Handle API errors
     if (!response.ok) {
@@ -201,9 +321,17 @@ Respond ONLY with the requested content. Do not include explanations, meta-comme
       );
     }
 
-    // Parse successful response
+    // Parse successful response based on provider
     const data = await response.json();
-    const generatedText = data.choices?.[0]?.message?.content || '';
+    let generatedText: string;
+
+    if (modelConfig.provider === 'anthropic') {
+      generatedText = data.content?.[0]?.text || '';
+    } else if (modelConfig.provider === 'gemini') {
+      generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    } else {
+      generatedText = data.choices?.[0]?.message?.content || '';
+    }
 
     if (!generatedText) {
       console.error('Empty response from Venice AI:', data);
@@ -232,7 +360,8 @@ Respond ONLY with the requested content. Do not include explanations, meta-comme
       wordCount,
       task,
       steamLevel,
-      model: VENICE_MODEL,
+      model: modelConfig.apiModel,
+      provider: modelConfig.provider,
       processingTime,
       usage: data.usage,
     });
