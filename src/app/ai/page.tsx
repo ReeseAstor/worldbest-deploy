@@ -4,18 +4,15 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@ember/ui-components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@ember/ui-components';
 import {
-  Sparkles, Flame, Mic2, PenTool, MessageSquare, Edit3, FileText, Zap,
-  Settings, Play, Clock, CheckCircle, Loader2, Copy, BookOpen, Users,
-  Heart, Wand2, Target, TrendingUp, ChevronRight, ChevronDown, Lightbulb,
-  Send, X, Check, History, RefreshCw, MoreHorizontal, Feather, Theater,
-  Glasses, Brain, Eye, Maximize2, Star, Image, Bot, Cpu, Palette,
-  MessageCircle, PlusCircle, Trash2, Download, Share2, Bookmark,
-  LayoutGrid, List, Sliders, Volume2, Layers, ArrowRight, Crown,
-  Infinity, Gauge, Activity, BarChart3, PieChart, Timer, Coins
+  Sparkles, PenTool, Edit3,
+  Settings, Play, Loader2, Copy, BookOpen,
+  Wand2, ChevronDown, Lightbulb,
+  Send, Check, Brain, Star, Image, Bot,
+  MessageCircle, PlusCircle, Trash2, Download, Share2,
+  Layers, Gauge, Activity, Coins, Keyboard, RotateCcw
 } from 'lucide-react';
 
 // ============================================================================
@@ -73,7 +70,7 @@ interface SteamLevel {
 interface WorkflowStep {
   id: string;
   name: string;
-  icon: typeof Feather;
+  icon: typeof Lightbulb;
   description: string;
   prompts: string[];
 }
@@ -283,6 +280,10 @@ export default function AIStudioPage() {
   const { toast } = useToast();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const workflowInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Custom workflow prompt
+  const [customPrompt, setCustomPrompt] = useState('');
 
   // Usage stats (initialized empty - will be loaded from user's actual usage)
   const [stats, setStats] = useState<UsageStats>({
@@ -296,8 +297,18 @@ export default function AIStudioPage() {
     acceptanceRate: 0,
   });
 
-  // Load actual usage stats
+  // Load actual usage stats and persist settings
   useEffect(() => {
+    // Load saved preferences
+    const savedModel = localStorage.getItem('ember-ai-model');
+    const savedSteam = localStorage.getItem('ember-steam-level');
+    if (savedModel) {
+      const model = AI_MODELS.find(m => m.id === savedModel);
+      if (model) setSelectedModel(model);
+    }
+    if (savedSteam) setSteamLevel(parseInt(savedSteam));
+
+    // Load stats
     const loadStats = async () => {
       try {
         const response = await fetch('/api/user/stats');
@@ -311,6 +322,24 @@ export default function AIStudioPage() {
     };
     loadStats();
   }, []);
+
+  // Save preferences when changed
+  useEffect(() => {
+    localStorage.setItem('ember-ai-model', selectedModel.id);
+  }, [selectedModel]);
+
+  useEffect(() => {
+    localStorage.setItem('ember-steam-level', steamLevel.toString());
+  }, [steamLevel]);
+
+  // Auto-focus input on tab change
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    } else if (activeTab === 'workflow') {
+      setTimeout(() => workflowInputRef.current?.focus(), 100);
+    }
+  }, [activeTab]);
 
   // ============================================================================
   // EFFECTS
@@ -512,6 +541,71 @@ export default function AIStudioPage() {
     }
   }, [handleSendMessage]);
 
+  // Copy with feedback
+  const copyToClipboard = useCallback((text: string, label = 'Content') => {
+    navigator.clipboard.writeText(text);
+    toast({ title: `${label} copied!`, description: 'Ready to paste' });
+  }, [toast]);
+
+  // Handle custom workflow prompt
+  const handleCustomWorkflow = useCallback(async () => {
+    if (!customPrompt.trim() || isGenerating) return;
+    setIsGenerating(true);
+    setWorkflowOutput('');
+
+    const fullPrompt = customPrompt + (workflowContext ? `\n\nContext:\n${workflowContext}` : '');
+
+    try {
+      const response = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task: activeWorkflow.id,
+          prompt: fullPrompt,
+          steamLevel,
+          voiceEnabled,
+          model: selectedModel.id,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Generation failed');
+
+      const data = await response.json();
+      setWorkflowOutput(data.text);
+      setCustomPrompt('');
+
+      toast({
+        title: 'Generation complete',
+        description: `Generated ${data.wordCount} words`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Generation failed',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [customPrompt, workflowContext, activeWorkflow.id, steamLevel, voiceEnabled, selectedModel.id, toast, isGenerating]);
+
+  // Delete conversation
+  const deleteConversation = useCallback((id: string) => {
+    setConversations(prev => prev.filter(c => c.id !== id));
+    if (activeConversation?.id === id) {
+      setActiveConversation(null);
+    }
+    toast({ title: 'Conversation deleted' });
+  }, [activeConversation, toast]);
+
+  // Clear workflow output
+  const clearWorkflow = useCallback(() => {
+    setWorkflowOutput('');
+    setWorkflowContext('');
+    setCustomPrompt('');
+    toast({ title: 'Cleared' });
+  }, [toast]);
+
   // ============================================================================
   // RENDER HELPERS
   // ============================================================================
@@ -702,20 +796,30 @@ export default function AIStudioPage() {
                   </div>
                 ) : (
                   conversations.map(conv => (
-                    <button
+                    <div
                       key={conv.id}
-                      onClick={() => setActiveConversation(conv)}
-                      className={`w-full p-3 rounded-lg text-left transition-all ${
+                      className={`group relative p-3 rounded-lg transition-all cursor-pointer ${
                         activeConversation?.id === conv.id
                           ? 'bg-primary text-primary-foreground'
                           : 'hover:bg-muted'
                       }`}
+                      onClick={() => setActiveConversation(conv)}
                     >
-                      <p className="font-medium text-sm truncate">{conv.title}</p>
+                      <p className="font-medium text-sm truncate pr-6">{conv.title}</p>
                       <p className="text-xs opacity-70 mt-1">
                         {conv.messages.length} messages
                       </p>
-                    </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteConversation(conv.id);
+                        }}
+                        className="absolute top-3 right-2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 transition-all"
+                        title="Delete conversation"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
                   ))
                 )}
               </div>
@@ -735,21 +839,31 @@ export default function AIStudioPage() {
                       <p className="text-sm text-muted-foreground mb-4">
                         Ask me to help with your romantasy novel. I can assist with plotting, character development, dialogue, romantic scenes, and more.
                       </p>
-                      <div className="flex flex-wrap gap-2 justify-center">
+                      <div className="grid grid-cols-1 gap-2 w-full max-w-lg">
                         {[
-                          'Help me write a meet-cute scene',
-                          'Create a morally grey love interest',
-                          'Generate dialogue with tension',
+                          { text: 'Help me write a meet-cute scene', icon: '💕' },
+                          { text: 'Create a morally grey love interest', icon: '🖤' },
+                          { text: 'Generate spicy dialogue with tension', icon: '🔥' },
+                          { text: 'Write a dramatic confrontation', icon: '⚔️' },
+                          { text: 'Draft an emotional reunion scene', icon: '🥹' },
                         ].map((suggestion, i) => (
                           <button
                             key={i}
-                            onClick={() => setChatInput(suggestion)}
-                            className="px-3 py-1.5 rounded-full bg-muted text-sm hover:bg-muted/80 transition-colors"
+                            onClick={() => {
+                              setChatInput(suggestion.text);
+                              inputRef.current?.focus();
+                            }}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/50 hover:bg-muted text-sm text-left transition-all hover:scale-[1.02]"
                           >
-                            {suggestion}
+                            <span className="text-xl">{suggestion.icon}</span>
+                            <span>{suggestion.text}</span>
                           </button>
                         ))}
                       </div>
+                      <p className="text-xs text-muted-foreground mt-4 flex items-center gap-2">
+                        <Keyboard className="h-3 w-3" />
+                        Press Enter to send • Shift+Enter for new line
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -885,18 +999,45 @@ export default function AIStudioPage() {
                     />
                   </div>
 
+                  {/* Custom Prompt Input */}
                   <div>
-                    <Label className="text-xs mb-2 block">Quick Prompts</Label>
-                    <div className="space-y-2">
+                    <Label className="text-xs mb-2 block">Your Prompt</Label>
+                    <div className="flex gap-2">
+                      <textarea
+                        ref={workflowInputRef}
+                        value={customPrompt}
+                        onChange={(e) => setCustomPrompt(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleCustomWorkflow();
+                          }
+                        }}
+                        placeholder={`Ask anything about ${activeWorkflow.name.toLowerCase()}...`}
+                        className="flex-1 min-h-[60px] px-4 py-3 rounded-xl border bg-background resize-none text-sm"
+                      />
+                      <Button
+                        onClick={handleCustomWorkflow}
+                        disabled={!customPrompt.trim() || isGenerating}
+                        className="h-auto px-4 bg-gradient-to-r from-rose-500 to-amber-500"
+                      >
+                        {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Quick Actions</Label>
+                    <div className="grid grid-cols-1 gap-2">
                       {activeWorkflow.prompts.map((prompt, i) => (
                         <button
                           key={i}
                           onClick={() => handleWorkflowGenerate(prompt)}
                           disabled={isGenerating}
-                          className="w-full p-3 rounded-lg border bg-background hover:bg-muted text-left text-sm transition-all flex items-center gap-2"
+                          className="w-full p-3 rounded-lg border bg-background hover:bg-muted text-left text-sm transition-all flex items-center gap-2 hover:border-rose-500/50"
                         >
                           <Play className="h-4 w-4 text-rose-500 flex-shrink-0" />
-                          {prompt.replace('[CONTEXT]', '...').replace('[STEAM_LEVEL]', STEAM_LEVELS[steamLevel - 1].name).replace('[CHARACTERS]', 'characters')}
+                          <span className="flex-1">{prompt.replace('[CONTEXT]', '...').replace('[STEAM_LEVEL]', STEAM_LEVELS[steamLevel - 1].name).replace('[CHARACTERS]', 'characters')}</span>
                         </button>
                       ))}
                     </div>
@@ -912,9 +1053,13 @@ export default function AIStudioPage() {
                       <CardTitle className="text-base">Generated Content</CardTitle>
                       {workflowOutput && (
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(workflowOutput)}>
+                          <Button variant="outline" size="sm" onClick={() => copyToClipboard(workflowOutput, 'Generated content')}>
                             <Copy className="h-4 w-4 mr-1" />
                             Copy
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={clearWorkflow}>
+                            <RotateCcw className="h-4 w-4 mr-1" />
+                            Clear
                           </Button>
                         </div>
                       )}
