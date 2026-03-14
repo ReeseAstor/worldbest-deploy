@@ -128,10 +128,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     </span>
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium">{user?.display_name || 'User'}</p>
-                    <p className="text-xs text-muted-foreground truncate max-w-[140px]">
-                      {user?.email || ''}
-                    </p>
+                    <p className="text-sm font-medium">{user?.display_name}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                 </div>
               </Button>

@@ -28,10 +28,8 @@
       "@/store/*": ["./src/store/*"],
       "@/types/*": ["./src/types/*"],
       "@/styles/*": ["./src/styles/*"],
-      "@ember/shared-types": ["./packages/shared-types/src"],
-      "@ember/shared-types/*": ["./packages/shared-types/src/*"],
-      "@ember/ui-components": ["./packages/ui-components/src"],
-      "@ember/ui-components/*": ["./packages/ui-components/src/*"]
+      "@worldbest/shared-types": ["./packages/shared-types/src"],
+      "@worldbest/ui-components": ["./packages/ui-components/src"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

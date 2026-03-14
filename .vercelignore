@@ -1,0 +1,17 @@
+# Vercel ignore file
+# Files to exclude from Vercel builds
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local environment files
+.env.local
+.env.*.local
+
+# Test files (optional, include if not needed in build)
+# __tests__/
+# *.test.ts
+# *.test.tsx
