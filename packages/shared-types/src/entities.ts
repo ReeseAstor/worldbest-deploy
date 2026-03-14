@@ -1,7 +1,6 @@
 // Core Entity Types for Ember Platform - AI-Powered Romantasy Ghostwriting
 
 import { SteamLevelValue, SteamSettings, SceneSteamOverride } from './steam';
-import { VoiceProfile as AuthorVoiceProfile } from './voice';
 import { BeatSheet, TropeSelection } from './beat-sheets';
 
 export interface BaseEntity {
