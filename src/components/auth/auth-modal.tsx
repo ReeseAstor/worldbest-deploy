@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@worldbest/ui-components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@worldbest/ui-components';
+import { Button } from '@ember/ui-components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { X, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { X, Eye, EyeOff, Loader2, Mail, Sparkles } from 'lucide-react';
 import { useAuth } from './auth-provider';
 
 interface AuthModalProps {
@@ -21,8 +21,10 @@ export function AuthModal({ mode, onClose, onSwitchMode }: AuthModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [useMagicLink, setUseMagicLink] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
 
-  const { login, signup } = useAuth();
+  const { login, signup, signInWithMagicLink } = useAuth();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -33,17 +35,19 @@ export function AuthModal({ mode, onClose, onSwitchMode }: AuthModalProps) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
+    if (!useMagicLink) {
+      if (!password) {
+        newErrors.password = 'Password is required';
+      } else if (password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters';
+      }
 
-    if (mode === 'signup') {
-      if (!displayName) {
-        newErrors.displayName = 'Display name is required';
-      } else if (displayName.length < 2) {
-        newErrors.displayName = 'Display name must be at least 2 characters';
+      if (mode === 'signup') {
+        if (!displayName) {
+          newErrors.displayName = 'Display name is required';
+        } else if (displayName.length < 2) {
+          newErrors.displayName = 'Display name must be at least 2 characters';
+        }
       }
     }
 
@@ -58,18 +62,53 @@ export function AuthModal({ mode, onClose, onSwitchMode }: AuthModalProps) {
 
     setLoading(true);
     try {
-      if (mode === 'login') {
+      if (useMagicLink) {
+        await signInWithMagicLink(email);
+        setMagicLinkSent(true);
+      } else if (mode === 'login') {
         await login(email, password);
+        onClose();
       } else {
         await signup(email, password, displayName);
+        onClose();
       }
-      onClose();
     } catch (error) {
       // Error is handled in the auth provider
     } finally {
       setLoading(false);
     }
   };
+
+  if (magicLinkSent) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+        <Card className="w-full max-w-md mx-4">
+          <CardHeader className="relative text-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-0"
+              onClick={onClose}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Mail className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Check your email</CardTitle>
+            <CardDescription>
+              We sent a magic link to <strong>{email}</strong>. Click the link to sign in.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button variant="outline" onClick={() => setMagicLinkSent(false)}>
+              Try a different email
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
@@ -89,13 +128,13 @@ export function AuthModal({ mode, onClose, onSwitchMode }: AuthModalProps) {
           <CardDescription>
             {mode === 'login' 
               ? 'Enter your credentials to access your account' 
-              : 'Enter your information to create your WorldBest account'
+              : 'Enter your information to create your Ember account'
             }
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'signup' && (
+            {mode === 'signup' && !useMagicLink && (
               <div className="space-y-2">
                 <Label htmlFor="displayName">Display Name</Label>
                 <Input
@@ -127,42 +166,63 @@ export function AuthModal({ mode, onClose, onSwitchMode }: AuthModalProps) {
               )}
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+            {!useMagicLink && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password}</p>
+                )}
               </div>
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password}</p>
-              )}
-            </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {mode === 'login' ? 'Sign In' : 'Create Account'}
+              {useMagicLink 
+                ? 'Send Magic Link' 
+                : mode === 'login' 
+                  ? 'Sign In' 
+                  : 'Create Account'
+              }
             </Button>
           </form>
+
+          {mode === 'login' && (
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setUseMagicLink(!useMagicLink)}
+                disabled={loading}
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                {useMagicLink ? 'Use password instead' : 'Sign in with magic link'}
+              </Button>
+            </div>
+          )}
 
           <div className="mt-4 text-center text-sm">
             {mode === 'login' ? (

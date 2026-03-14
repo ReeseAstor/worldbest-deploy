@@ -1,7 +1,55 @@
-// Core exports
+// Core exports - using selective exports to avoid conflicts
 export * from './ai';
 export * from './api';
-export * from './auth';
+export type { User, UserPreferences } from './auth';
 export * from './billing';
-export * from './entities';
+// entities has conflicts with ai.ts (AIGenerationParams, AIPersona), export selectively
+export {
+  // Base
+  type BaseEntity,
+  // Project
+  type Project,
+  type ProjectSettings,
+  type AIPreferences,
+  type RomantasySubgenre,
+  type SeriesInfo,
+  type ProjectCollaborator,
+  // Book
+  type Book,
+  type Chapter,
+  type Scene,
+  // Character
+  type Character,
+  type RomanceRole,
+  type SpeechPatterns,
+  type RomanceAttributes,
+  type AppearanceDetails,
+  // World
+  type TimelineEvent,
+  type Era,
+  // Content
+  type Placeholder,
+  type BibleReference,
+  type TextVersion,
+  // Style
+  type StyleProfile,
+  type ToneSettings,
+  type PacingSettings,
+  type VocabularyPreferences,
+  // Enums from entities
+  ContentRating,
+  BookStatus,
+  ChapterStatus,
+  ProjectRole,
+  RelationshipType,
+  PlaceholderType,
+  PlaceholderIntensity,
+  RenderingMode,
+  EconomyType,
+} from './entities';
 export * from './enums';
+
+// Ember-specific exports
+export * from './steam';
+export * from './voice';
+export * from './beat-sheets';

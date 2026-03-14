@@ -5,47 +5,55 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 346 20% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 346 20% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 346 20% 10%;
+    --primary: 346 77% 50%; /* Rose-500 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 25 95% 95%;
+    --secondary-foreground: 346 20% 10%;
+    --muted: 25 30% 96%;
+    --muted-foreground: 346 10% 46%;
+    --accent: 25 95% 95%;
+    --accent-foreground: 346 20% 10%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 25 20% 90%;
+    --input: 25 20% 90%;
+    --ring: 346 77% 50%;
     --radius: 0.5rem;
+    
+    /* Ember-specific variables */
+    --ember-glow: 25 95% 55%;
+    --steam-1: 215 20% 65%; /* Closed Door */
+    --steam-2: 330 65% 65%; /* Warm */
+    --steam-3: 350 90% 65%; /* Steamy */
+    --steam-4: 0 72% 51%;   /* Spicy */
+    --steam-5: 0 84% 40%;   /* Scorching */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    --background: 346 20% 6%;
+    --foreground: 25 30% 95%;
+    --card: 346 20% 8%;
+    --card-foreground: 25 30% 95%;
+    --popover: 346 20% 8%;
+    --popover-foreground: 25 30% 95%;
+    --primary: 346 77% 55%;
+    --primary-foreground: 346 20% 6%;
+    --secondary: 346 20% 15%;
+    --secondary-foreground: 25 30% 95%;
+    --muted: 346 20% 15%;
+    --muted-foreground: 25 20% 65%;
+    --accent: 346 20% 15%;
+    --accent-foreground: 25 30% 95%;
+    --destructive: 0 62.8% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 346 20% 15%;
+    --input: 346 20% 15%;
+    --ring: 346 77% 55%;
   }
 }
 
@@ -59,48 +67,85 @@
 }
 
 @layer components {
-  .prose-worldbest {
+  .prose-ember {
     @apply prose prose-slate dark:prose-invert max-w-none;
   }
   
-  .prose-worldbest h1 {
+  .prose-ember h1 {
     @apply text-3xl font-bold tracking-tight;
   }
   
-  .prose-worldbest h2 {
+  .prose-ember h2 {
     @apply text-2xl font-semibold tracking-tight;
   }
   
-  .prose-worldbest h3 {
+  .prose-ember h3 {
     @apply text-xl font-semibold tracking-tight;
   }
   
-  .prose-worldbest p {
+  .prose-ember p {
     @apply leading-7 [&:not(:first-child)]:mt-6;
   }
   
-  .prose-worldbest blockquote {
-    @apply mt-6 border-l-2 pl-6 italic;
+  .prose-ember blockquote {
+    @apply mt-6 border-l-2 border-rose-300 pl-6 italic;
   }
   
-  .prose-worldbest ul {
+  .prose-ember ul {
     @apply my-6 ml-6 list-disc [&>li]:mt-2;
   }
   
-  .prose-worldbest ol {
+  .prose-ember ol {
     @apply my-6 ml-6 list-decimal [&>li]:mt-2;
   }
   
-  .prose-worldbest code {
+  .prose-ember code {
     @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
   }
   
-  .prose-worldbest pre {
+  .prose-ember pre {
     @apply overflow-x-auto rounded-lg bg-muted p-4;
   }
   
-  .prose-worldbest pre code {
+  .prose-ember pre code {
     @apply bg-transparent p-0;
+  }
+
+  /* Steam level badges */
+  .steam-badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+  
+  .steam-badge-1 {
+    @apply bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300;
+  }
+  
+  .steam-badge-2 {
+    @apply bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300;
+  }
+  
+  .steam-badge-3 {
+    @apply bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300;
+  }
+  
+  .steam-badge-4 {
+    @apply bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300;
+  }
+  
+  .steam-badge-5 {
+    @apply bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200;
+  }
+
+  /* Manuscript editor typography */
+  .manuscript-editor {
+    font-family: 'Merriweather', 'Georgia', serif;
+    font-size: 1.125rem;
+    line-height: 1.9;
+    letter-spacing: 0.01em;
+  }
+  
+  .manuscript-editor::selection {
+    @apply bg-rose-200 dark:bg-rose-800;
   }
 }
 
@@ -195,11 +240,11 @@
 
 /* AI generation status */
 .ai-generating {
-  @apply animate-pulse border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950;
+  @apply animate-pulse border-l-4 border-rose-500 bg-rose-50 dark:bg-rose-950;
 }
 
 .ai-completed {
-  @apply border-l-4 border-green-500 bg-green-50 dark:bg-green-950;
+  @apply border-l-4 border-emerald-500 bg-emerald-50 dark:bg-emerald-950;
 }
 
 .ai-error {

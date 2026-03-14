@@ -1,17 +1,18 @@
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { LandingPage } from '@/components/landing/landing-page';
 
-export default function HomePage() {
-  // Check if user is authenticated
-  const cookieStore = cookies();
-  const authToken = cookieStore.get('auth-token');
-  
-  // If authenticated, redirect to dashboard
-  if (authToken) {
-    redirect('/dashboard');
+export default async function HomePage() {
+  try {
+    const supabase = await createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      redirect('/dashboard');
+    }
+  } catch (error) {
+    console.error('Auth check error:', error);
   }
   
-  // Otherwise show landing page
   return <LandingPage />;
 }

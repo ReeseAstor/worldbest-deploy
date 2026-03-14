@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Button } from '@worldbest/ui-components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@worldbest/ui-components';
+import { Button } from '@ember/ui-components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@ember/ui-components';
 import {
   ArrowLeft,
   Save,
@@ -42,7 +43,8 @@ import {
   UserCheck,
   Zap,
   FileText,
-  History
+  History,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
 
@@ -110,6 +112,9 @@ export default function WritePage() {
   const [selectedText, setSelectedText] = useState('');
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const { toast } = useToast();
   
   const [currentChapter, setCurrentChapter] = useState<Chapter>({
     id: '1',
@@ -179,9 +184,55 @@ export default function WritePage() {
     }
   };
 
-  const generateWithAI = async () => {
-    // TODO: Implement AI generation
-    console.log('Generating with', selectedPersona.name, 'for:', selectedText || 'continuation');
+  const generateWithAI = async (action: 'continue' | 'improve' | 'dialogue' | 'describe' | 'voice' | 'custom' = 'continue') => {
+    setIsGenerating(true);
+    
+    const prompts: Record<string, string> = {
+      continue: `Continue this romantasy scene naturally. Here's the current content:\n\n${content.replace(/<[^>]*>/g, '')}\n\nWrite the next 200-300 words, maintaining the established tone and voice.`,
+      improve: `Improve and enhance this selected text while maintaining the author's voice:\n\n"${selectedText}"\n\nProvide an improved version.`,
+      dialogue: `Generate compelling dialogue for this scene. Context:\n\n${content.replace(/<[^>]*>/g, '')}\n\nWrite natural, character-driven dialogue with tension and subtext.`,
+      describe: `Add vivid sensory descriptions to enhance this scene:\n\n${content.replace(/<[^>]*>/g, '')}\n\nProvide rich descriptive passages.`,
+      voice: `Analyze if this dialogue matches the established character voices:\n\n${selectedText || content.replace(/<[^>]*>/g, '')}\n\nProvide feedback on voice consistency.`,
+      custom: customPrompt || 'Continue the scene.',
+    };
+
+    try {
+      const response = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task: action,
+          prompt: prompts[action],
+          steamLevel: 3,
+          voiceEnabled: true,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Generation failed');
+      
+      const data = await response.json();
+      
+      // Insert generated text at cursor or append
+      if (data.text) {
+        const newContent = action === 'improve' && selectedText
+          ? content.replace(selectedText, data.text)
+          : content + `<p>${data.text.replace(/\n\n/g, '</p><p>')}</p>`;
+        setContent(newContent);
+        
+        toast({
+          title: 'Content generated!',
+          description: `Added ${data.wordCount} words to your manuscript.`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Generation failed',
+        description: 'Could not connect to AI service. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const Toolbar = () => (
@@ -564,24 +615,43 @@ export default function WritePage() {
                   <Button
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={generateWithAI}
-                    disabled={!selectedText && wordCount === 0}
+                    onClick={() => generateWithAI(selectedText ? 'improve' : 'continue')}
+                    disabled={isGenerating}
                   >
-                    <Zap className="h-4 w-4 mr-2" />
+                    {isGenerating ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Zap className="h-4 w-4 mr-2" />
+                    )}
                     {selectedText ? 'Improve Selection' : 'Continue Writing'}
                   </Button>
                   
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => generateWithAI('dialogue')}
+                    disabled={isGenerating}
+                  >
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Generate Dialogue
                   </Button>
                   
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => generateWithAI('describe')}
+                    disabled={isGenerating}
+                  >
                     <Eye className="h-4 w-4 mr-2" />
                     Describe Scene
                   </Button>
                   
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => generateWithAI('voice')}
+                    disabled={isGenerating}
+                  >
                     <Users className="h-4 w-4 mr-2" />
                     Character Voice Check
                   </Button>
@@ -594,9 +664,19 @@ export default function WritePage() {
                 <textarea
                   className="w-full min-h-[100px] px-3 py-2 border rounded-md bg-background text-sm"
                   placeholder="Ask the AI for specific help..."
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
                 />
-                <Button className="w-full">
-                  <Sparkles className="h-4 w-4 mr-2" />
+                <Button 
+                  className="w-full"
+                  onClick={() => generateWithAI('custom')}
+                  disabled={isGenerating || !customPrompt.trim()}
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
                   Generate
                 </Button>
               </div>

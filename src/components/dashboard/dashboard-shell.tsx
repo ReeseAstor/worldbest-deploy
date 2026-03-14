@@ -3,13 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Button } from '@worldbest/ui-components';
+import { Button } from '@ember/ui-components';
 import { 
-  BookOpen, 
-  Users, 
-  Map, 
+  Flame, 
   Sparkles, 
-  FileText, 
   Settings, 
   BarChart3,
   Home,
@@ -21,18 +18,23 @@ import {
   User,
   LogOut,
   CreditCard,
-  HelpCircle
+  HelpCircle,
+  BookHeart,
+  Mic2,
+  Download,
+  Target
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
-import { cn } from '@worldbest/ui-components';
+import { cn } from '@ember/ui-components';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Projects', href: '/projects', icon: BookOpen },
-  { name: 'Characters', href: '/characters', icon: Users },
-  { name: 'Worldbuilding', href: '/worldbuilding', icon: Map },
-  { name: 'AI Assistant', href: '/ai', icon: Sparkles },
-  { name: 'Export', href: '/export', icon: FileText },
+  { name: 'Projects', href: '/projects', icon: Flame },
+  { name: 'Series Bible', href: '/bible', icon: BookHeart },
+  { name: 'Beat Sheets', href: '/beats', icon: Target },
+  { name: 'Voice Profile', href: '/voice', icon: Mic2 },
+  { name: 'AI Studio', href: '/ai', icon: Sparkles },
+  { name: 'Export', href: '/export', icon: Download },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
@@ -76,8 +78,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           {/* Logo */}
           <div className="flex h-16 items-center justify-between px-4 border-b">
             <Link href="/dashboard" className="flex items-center space-x-2">
-              <BookOpen className="h-6 w-6" />
-              <span className="text-lg font-bold">WorldBest</span>
+              <Flame className="h-6 w-6 text-rose-500" />
+              <span className="text-lg font-bold">Ember</span>
             </Link>
             <Button
               variant="ghost"
@@ -90,42 +92,40 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 p-4">
+          <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
             {navigation.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href));
               return (
                 <Link
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    isActive 
+                      ? "bg-accent text-accent-foreground" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                   )}
-                  onClick={() => setSidebarOpen(false)}
                 >
-                  <item.icon className={cn(
-                    "mr-3 h-5 w-5 flex-shrink-0",
-                    isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
-                  )} />
+                  <item.icon className="h-5 w-5" />
                   {item.name}
                 </Link>
               );
             })}
           </nav>
 
-          {/* User menu */}
+          {/* User section */}
           <div className="border-t p-4">
             <div className="relative">
               <Button
                 variant="ghost"
-                className="w-full justify-start p-2 h-auto"
+                className="w-full justify-start"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
               >
-                <div className="flex items-center space-x-3">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="h-4 w-4" />
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">
+                      {user?.display_name?.charAt(0).toUpperCase() || 'U'}
+                    </span>
                   </div>
                   <div className="text-left">
                     <p className="text-sm font-medium">{user?.display_name}</p>
@@ -135,34 +135,26 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               </Button>
 
               {userMenuOpen && (
-                <div className="absolute bottom-full left-0 w-full mb-2 bg-popover border rounded-md shadow-lg">
-                  <div className="p-1">
-                    {userNavigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="flex items-center px-3 py-2 text-sm rounded-sm hover:bg-accent transition-colors"
-                        onClick={() => {
-                          setUserMenuOpen(false);
-                          setSidebarOpen(false);
-                        }}
-                      >
-                        <item.icon className="mr-3 h-4 w-4" />
-                        {item.name}
-                      </Link>
-                    ))}
-                    <button
-                      className="flex w-full items-center px-3 py-2 text-sm rounded-sm hover:bg-accent transition-colors text-destructive"
-                      onClick={() => {
-                        setUserMenuOpen(false);
-                        setSidebarOpen(false);
-                        handleLogout();
-                      }}
+                <div className="absolute bottom-full left-0 mb-2 w-full bg-card rounded-lg shadow-lg border py-1">
+                  {userNavigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
                     >
-                      <LogOut className="mr-3 h-4 w-4" />
-                      Sign out
-                    </button>
-                  </div>
+                      <item.icon className="h-4 w-4" />
+                      {item.name}
+                    </Link>
+                  ))}
+                  <hr className="my-1" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-accent w-full transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </button>
                 </div>
               )}
             </div>
