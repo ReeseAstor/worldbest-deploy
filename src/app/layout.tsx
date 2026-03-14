@@ -13,8 +13,8 @@ const merriweather = Merriweather({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Ember',
-    default: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
+    template: '%s | 88away',
+    default: '88away - AI-Powered Romantasy Ghostwriting Platform',
   },
   description: 'The only AI writing platform built for steamy romantasy. Genre-tuned drafting, steam calibration, voice fingerprinting, series bible, and KDP-ready export.',
   keywords: [
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     'indie author tools',
   ],
   authors: [{ name: '88Away LLC' }],
-  creator: 'Ember',
+  creator: '88away',
   publisher: '88Away LLC',
   formatDetection: {
     email: false,
@@ -44,24 +44,24 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: '/',
-    title: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
+    title: '88away - AI-Powered Romantasy Ghostwriting Platform',
     description: 'The only AI writing platform built for steamy romantasy. Genre-tuned drafting, steam calibration, voice fingerprinting, and indie publishing pipeline.',
-    siteName: 'Ember',
+    siteName: '88away',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
+        alt: '88away - AI-Powered Romantasy Ghostwriting Platform',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
+    title: '88away - AI-Powered Romantasy Ghostwriting Platform',
     description: 'The only AI writing platform built for steamy romantasy. Genre-tuned drafting, steam calibration, voice fingerprinting, and indie publishing pipeline.',
     images: ['/og-image.png'],
-    creator: '@emberwriting',
+    creator: '@88away',
   },
   robots: {
     index: true,

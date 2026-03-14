@@ -12,7 +12,7 @@ export function ScrollStopLanding() {
   return (
     <iframe
       src="/scroll-stop/index.html"
-      title="Ember — AI-Powered Romantasy Ghostwriting"
+      title="88away — AI-Powered Romantasy Ghostwriting"
       style={{
         position: 'fixed',
         top: 0,
