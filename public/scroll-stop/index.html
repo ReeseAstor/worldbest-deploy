@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>88away — AI-Powered Romantasy Ghostwriting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* ===== CSS VARIABLES ===== */
+:root {
+  --accent: #f43f5e;
+  --accent-rgb: 244, 63, 94;
+  --accent-light: #fb7185;
+  --accent-dark: #e11d48;
+  --bg: #0a0a0b;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --border: rgba(255, 255, 255, 0.06);
+  --text-primary: #f5f5f5;
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-muted: rgba(255, 255, 255, 0.35);
+  --glow: rgba(244, 63, 94, 0.3);
+  --glow-strong: rgba(244, 63, 94, 0.5);
+}
+
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+html {
+  scroll-behavior: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Archivo', sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  box-shadow: 0 0 10px var(--glow);
+}
+
+/* ===== STARSCAPE ===== */
+#starscape {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ===== LOADER ===== */
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease;
+}
+.loader-content { text-align: center; }
+.loader-logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.loader-logo svg { width: 40px; height: 40px; }
+.loader-text {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+.loader-bar-track {
+  width: 200px;
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.loader-bar-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* ===== SCROLL PROGRESS ===== */
+#scrollProgress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  z-index: 10000;
+  transition: width 0.1s linear;
+}
+
+/* ===== NAVBAR ===== */
+#navbar {
+  position: fixed;
+  top: 12px;
+  left: 0; right: 0;
+  z-index: 1000;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+}
+#navbar.loaded { opacity: 1; }
+.nav-inner {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 12px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+#navbar.nav-scrolled .nav-inner {
+  max-width: 820px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 100px;
+  padding: 10px 24px;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.nav-logo svg { width: 28px; height: 28px; }
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+.nav-links a:hover { color: var(--text-primary); }
+.nav-cta {
+  background: var(--accent) !important;
+  color: #fff !important;
+  padding: 8px 20px !important;
+  border-radius: 100px !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 0 15px var(--glow);
+}
+.nav-cta:hover {
+  box-shadow: 0 0 25px var(--glow-strong) !important;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .nav-inner { padding: 12px 20px; }
+  #navbar.nav-scrolled .nav-inner { max-width: 200px; padding: 10px 20px; }
+}
+
+/* ===== HERO ===== */
+#hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 1;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+.orb-1 {
+  width: 500px; height: 500px;
+  background: var(--accent);
+  top: -200px; right: -100px;
+  opacity: 0.12;
+}
+.orb-2 {
+  width: 400px; height: 400px;
+  background: var(--accent);
+  bottom: -150px; left: -100px;
+  opacity: 0.08;
+}
+.orb-3 {
+  width: 300px; height: 300px;
+  background: var(--accent-light);
+  top: 40%; left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.05;
+}
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 800px;
+  padding: 0 24px;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+}
+.hero-badge svg { width: 16px; height: 16px; color: var(--accent); }
+.hero-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+}
+.hero-title .accent { color: var(--accent); }
+.hero-subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  padding: 16px 36px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 20px var(--glow);
+  transition: all 0.3s ease;
+  font-family: 'Archivo', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary:hover {
+  box-shadow: 0 0 35px var(--glow-strong);
+  transform: translateY(-2px);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  padding: 16px 36px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Archivo', sans-serif;
+}
+.btn-secondary:hover {
+  border-color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.03);
+}
+.scroll-hint {
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.scroll-arrow {
+  width: 20px;
+  height: 20px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(45deg);
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: rotate(45deg) translateY(0); opacity: 0.5; }
+  50% { transform: rotate(45deg) translateY(8px); opacity: 1; }
+}
+
+/* ===== SCROLL ANIMATION ===== */
+.scroll-animation {
+  height: 400vh;
+  position: relative;
+  z-index: 1;
+}
+.scroll-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+#frameCanvas {
+  position: absolute;
+  top: 0; left: 0;
+}
+
+@media (max-width: 1024px) { .scroll-animation { height: 320vh; } }
+@media (max-width: 768px)  { .scroll-animation { height: 260vh; } }
+
+/* ===== ANNOTATION CARDS ===== */
+.annotation-card {
+  position: absolute;
+  bottom: 8vh;
+  left: 5vw;
+  max-width: 380px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 20px;
+  padding: 28px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+.annotation-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.card-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+.card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.card-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.card-stat-number {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.card-stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+  .annotation-card {
+    bottom: 1.5vh;
+    left: 2vw; right: 2vw;
+    max-width: none;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-radius: 14px;
+  }
+  .card-desc, .card-stat { display: none; }
+  .card-number { margin-bottom: 0; font-size: 0.7rem; }
+  .card-title { font-size: 1rem; margin-bottom: 0; }
+}
+
+/* ===== SPECS ===== */
+#specs {
+  position: relative;
+  z-index: 1;
+}
+.specs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 120px 32px;
+  text-align: center;
+}
+.spec-number {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  display: block;
+  transition: text-shadow 0.3s ease;
+}
+.spec-number.counting {
+  text-shadow: 0 0 20px var(--glow);
+}
+.spec-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .specs-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; padding: 80px 24px; }
+  .spec-number { font-size: 2.5rem; }
+}
+
+/* ===== FEATURES ===== */
+#features {
+  position: relative;
+  z-index: 1;
+}
+.section-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.section-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  max-width: 550px;
+  margin: 0 auto 60px;
+  font-size: 1.05rem;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 32px;
+}
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 32px;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.feature-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(var(--accent-rgb), 0.2);
+}
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 16px;
+}
+.feature-card h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.feature-card p {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 1024px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { .features-grid { grid-template-columns: 1fr; padding: 60px 20px; } }
+
+/* ===== CTA ===== */
+#cta {
+  text-align: center;
+  padding: 120px 32px;
+  position: relative;
+  z-index: 1;
+}
+#cta .orb-cta {
+  position: absolute;
+  width: 500px; height: 500px;
+  background: var(--accent);
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.08;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+#cta h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  margin-bottom: 16px;
+  position: relative;
+}
+#cta p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  max-width: 500px;
+  margin: 0 auto 40px;
+  position: relative;
+}
+.btn-large {
+  font-size: 1.1rem;
+  padding: 20px 52px;
+  position: relative;
+}
+
+/* ===== TESTIMONIALS ===== */
+#testimonials {
+  position: relative;
+  z-index: 1;
+  padding: 80px 0;
+}
+.testimonials-track {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 40px 32px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  cursor: grab;
+}
+.testimonials-track::-webkit-scrollbar { display: none; }
+.testimonials-track:active { cursor: grabbing; }
+.testimonial-card {
+  min-width: 350px;
+  max-width: 400px;
+  scroll-snap-align: start;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 32px;
+  flex-shrink: 0;
+}
+.testimonial-stars {
+  color: #fbbf24;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+.testimonial-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  font-style: italic;
+}
+.testimonial-author .author-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: block;
+}
+.testimonial-author .author-role {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .testimonial-card { min-width: 300px; padding: 24px; }
+}
+
+/* ===== CARD SCANNER (THREE.JS) ===== */
+#card-scanner {
+  position: relative;
+  z-index: 1;
+  padding: 80px 32px;
+}
+.scanner-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+#scannerCanvas {
+  width: 100%;
+  max-width: 800px;
+  height: 500px;
+  margin: 40px auto 0;
+  display: block;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  #scannerCanvas { height: 350px; }
+}
+
+/* ===== CONFETTI ===== */
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  z-index: 9998;
+  pointer-events: none;
+  animation: confettiFall 3s ease-in forwards;
+}
+@keyframes confettiFall {
+  0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+  100% { opacity: 0; transform: translateY(100vh) rotate(720deg) scale(0.3); }
+}
+
+/* ===== FOOTER ===== */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 60px 32px 40px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.footer-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.footer-brand svg { width: 24px; height: 24px; }
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.footer-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+.footer-links a:hover { color: var(--text-primary); }
+.footer-copy {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== STARSCAPE ===== -->
+<canvas id="starscape"></canvas>
+
+<!-- ===== LOADER ===== -->
+<div id="loader">
+  <div class="loader-content">
+    <div class="loader-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+        <path d="M12 2c1 3 2.5 3.5 3.5 4.5A5 5 0 0 1 17 10a5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 1.5-3.5C9.5 5.5 11 5 12 2Z"/>
+        <path d="M12 17v5"/>
+        <path d="M10 22h4"/>
+      </svg>
+      88away
+    </div>
+    <p class="loader-text">Loading</p>
+    <div class="loader-bar-track">
+      <div class="loader-bar-fill" id="loaderBar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCROLL PROGRESS ===== -->
+<div id="scrollProgress"></div>
+
+<!-- ===== NAVBAR ===== -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+        <path d="M12 2c1 3 2.5 3.5 3.5 4.5A5 5 0 0 1 17 10a5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 1.5-3.5C9.5 5.5 11 5 12 2Z"/>
+        <path d="M12 17v5"/>
+        <path d="M10 22h4"/>
+      </svg>
+      88away
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#specs">Specs</a>
+      <a href="#testimonials">Testimonials</a>
+      <a href="#cta" class="nav-cta">Start Writing Free</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section id="hero">
+  <div class="hero-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-overlay"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2c1 3 2.5 3.5 3.5 4.5A5 5 0 0 1 17 10a5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 1.5-3.5C9.5 5.5 11 5 12 2Z"/>
+      </svg>
+      AI-Powered Romantasy Ghostwriting
+    </div>
+    <h1 class="hero-title">Write Steamy Romance<br><span class="accent">Faster Than Ever</span></h1>
+    <p class="hero-subtitle">
+      The only AI writing platform built for steamy romantasy. Genre-tuned drafting,
+      steam calibration, voice fingerprinting, and KDP-ready export.
+    </p>
+    <div class="hero-buttons">
+      <button class="btn-primary" id="heroCTA" onclick="fireConfetti(this)">
+        Start Writing Free
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </button>
+      <a href="#features" class="btn-secondary">Explore Features</a>
+    </div>
+    <div class="scroll-hint">
+      <span>Scroll to explore</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SCROLL ANIMATION ===== -->
+<section class="scroll-animation">
+  <div class="scroll-sticky">
+    <canvas id="frameCanvas"></canvas>
+
+    <!-- Annotation Card 1 -->
+    <div class="annotation-card" data-show="0.08" data-hide="0.28">
+      <div class="card-number">01</div>
+      <div class="card-body">
+        <h3 class="card-title">5-Level Steam Calibration</h3>
+        <p class="card-desc">From closed-door sweet to scorching explicit. Vocabulary-aware AI adapts heat levels to your exact comfort zone.</p>
+        <div class="card-stat">
+          <span class="card-stat-number">5</span>
+          <span class="card-stat-label">Heat Levels</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Annotation Card 2 -->
+    <div class="annotation-card" data-show="0.30" data-hide="0.50">
+      <div class="card-number">02</div>
+      <div class="card-body">
+        <h3 class="card-title">Voice Fingerprinting</h3>
+        <p class="card-desc">Upload your writing samples and 88away learns your unique style — sentence rhythm, vocabulary preferences, narrative voice.</p>
+        <div class="card-stat">
+          <span class="card-stat-number">99.2%</span>
+          <span class="card-stat-label">Voice Accuracy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Annotation Card 3 -->
+    <div class="annotation-card" data-show="0.52" data-hide="0.72">
+      <div class="card-number">03</div>
+      <div class="card-body">
+        <h3 class="card-title">Genre-Tuned AI Drafting</h3>
+        <p class="card-desc">AI trained on romantasy tropes. Understands tension arcs, dual-POV pacing, and happily-ever-after structure.</p>
+        <div class="card-stat">
+          <span class="card-stat-number">10x</span>
+          <span class="card-stat-label">Faster Drafting</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Annotation Card 4 -->
+    <div class="annotation-card" data-show="0.74" data-hide="0.94">
+      <div class="card-number">04</div>
+      <div class="card-body">
+        <h3 class="card-title">KDP-Ready Export</h3>
+        <p class="card-desc">One-click export to EPUB and PDF, formatted perfectly for Amazon Kindle Direct Publishing upload.</p>
+        <div class="card-stat">
+          <span class="card-stat-number">1-Click</span>
+          <span class="card-stat-label">Publish-Ready</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SPECS ===== -->
+<section id="specs">
+  <div class="specs-grid">
+    <div class="spec-item" data-target="5" data-suffix="">
+      <span class="spec-number">0</span>
+      <span class="spec-label">Steam Levels</span>
+    </div>
+    <div class="spec-item" data-target="10" data-suffix="x">
+      <span class="spec-number">0</span>
+      <span class="spec-label">Faster Drafting</span>
+    </div>
+    <div class="spec-item" data-target="99" data-suffix="%">
+      <span class="spec-number">0</span>
+      <span class="spec-label">Voice Accuracy</span>
+    </div>
+    <div class="spec-item" data-target="1" data-suffix="-Click">
+      <span class="spec-number">0</span>
+      <span class="spec-label">KDP Export</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section id="features">
+  <h2 class="section-title">Built for Romance Authors</h2>
+  <p class="section-subtitle">Everything you need to write, edit, and publish steamy romantasy novels faster than ever.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🌡️</div>
+      <h3>5-Level Steam Calibration</h3>
+      <p>From closed door to scorching. Control heat levels with vocabulary-aware AI that matches your comfort zone.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👥</div>
+      <h3>Romance Character Tools</h3>
+      <p>Rich character profiles with relationship arcs, speech patterns, and dynamic chemistry tracking.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">✨</div>
+      <h3>Genre-Tuned AI Drafting</h3>
+      <p>AI trained on romantasy tropes. Understands tension arcs and HEA pacing for compelling narratives.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💜</div>
+      <h3>Voice Fingerprinting</h3>
+      <p>Upload samples and 88away learns your unique writing style — sentence rhythm, tone, and vocabulary.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📖</div>
+      <h3>Beat Sheet Templates</h3>
+      <p>Romancing the Beat and dark romance templates for dual-POV storytelling with built-in pacing guides.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📤</div>
+      <h3>KDP-Ready Export</h3>
+      <p>One-click export to EPUB, PDF, formatted for Amazon KDP upload. Professional output, every time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section id="testimonials">
+  <h2 class="section-title">Loved by Romance Authors</h2>
+  <p class="section-subtitle">Join thousands of authors writing their best stories with 88away.</p>
+  <div class="testimonials-track" id="testimonialsTrack">
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"88away's steam calibration is a game-changer. I can write spicy scenes that match my brand perfectly — no more awkward edits."</p>
+      <div class="testimonial-author">
+        <span class="author-name">Sarah J. Mitchell</span>
+        <span class="author-role">Indie Romance Author, 12 books published</span>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"Voice fingerprinting blew my mind. After uploading three chapters, the AI was writing prose that sounded like ME. My readers can't tell the difference."</p>
+      <div class="testimonial-author">
+        <span class="author-name">Aria Blackwood</span>
+        <span class="author-role">Dark Romance Author, KDP Bestseller</span>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"I went from one book a year to one every two months. The beat sheet templates and AI drafting cut my writing time by 80%."</p>
+      <div class="testimonial-author">
+        <span class="author-name">Luna Hart</span>
+        <span class="author-role">Romantasy Author, 20+ titles</span>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"The KDP export alone saves me hours of formatting. Upload, click, done. My books look professional from day one on Amazon."</p>
+      <div class="testimonial-author">
+        <span class="author-name">Devon Steele</span>
+        <span class="author-role">Self-Published Author, 5-figure months</span>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"The character tools help me track relationship arcs across a 6-book series. No more continuity errors. My readers thank me."</p>
+      <div class="testimonial-author">
+        <span class="author-name">Vivian Cross</span>
+        <span class="author-role">Fantasy Romance Series Author</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CARD SCANNER (THREE.JS) ===== -->
+<section id="card-scanner">
+  <div class="scanner-content">
+    <h2 class="section-title">Particle Showcase</h2>
+    <p class="section-subtitle">Watch your story come to life — one particle at a time.</p>
+    <canvas id="scannerCanvas"></canvas>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section id="cta">
+  <div class="orb-cta"></div>
+  <h2>Ready to Write Your Bestseller?</h2>
+  <p>Join thousands of romance authors creating steamy, publish-ready novels with 88away's AI-powered platform.</p>
+  <button class="btn-primary btn-large" id="ctaBtn" onclick="fireConfetti(this)">
+    Start Writing Free
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+  </button>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+        <path d="M12 2c1 3 2.5 3.5 3.5 4.5A5 5 0 0 1 17 10a5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 1.5-3.5C9.5 5.5 11 5 12 2Z"/>
+        <path d="M12 17v5"/>
+        <path d="M10 22h4"/>
+      </svg>
+      88away
+    </div>
+    <div class="footer-links">
+      <a href="#">Features</a>
+      <a href="#">Pricing</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+    </div>
+    <p class="footer-copy">&copy; 2026 88Away LLC. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+/* ===================================================================
+   88AWAY SCROLL-STOP — ALL JAVASCRIPT
+   =================================================================== */
+
+/* ===== 1. STARSCAPE ===== */
+(function initStarscape() {
+  const canvas = document.getElementById('starscape');
+  const ctx = canvas.getContext('2d');
+  const stars = [];
+  const STAR_COUNT = 180;
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.scale(dpr, dpr);
+  }
+
+  function createStars() {
+    for (let i = 0; i < STAR_COUNT; i++) {
+      stars.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        radius: Math.random() * 1.2 + 0.3,
+        baseOpacity: Math.random() * 0.6 + 0.2,
+        driftX: (Math.random() - 0.5) * 0.04,
+        driftY: (Math.random() - 0.5) * 0.02,
+        twinkleSpeed: Math.random() * 0.002 + 0.001,
+        twinklePhase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function animate() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    ctx.clearRect(0, 0, w, h);
+    const now = Date.now();
+    stars.forEach(s => {
+      s.x += s.driftX;
+      s.y += s.driftY;
+      if (s.x < 0) s.x = w;
+      if (s.x > w) s.x = 0;
+      if (s.y < 0) s.y = h;
+      if (s.y > h) s.y = 0;
+      const twinkle = Math.sin(now * s.twinkleSpeed + s.twinklePhase);
+      const opacity = Math.max(0, s.baseOpacity + twinkle * 0.3);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${opacity})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(animate);
+  }
+
+  resize();
+  createStars();
+  animate();
+  window.addEventListener('resize', () => {
+    resize();
+    ctx.setTransform(1,0,0,1,0,0);
+    const dpr = window.devicePixelRatio || 1;
+    ctx.scale(dpr, dpr);
+  });
+})();
+
+/* ===== 2. FRAME PRELOADING & CANVAS ===== */
+const FRAME_COUNT = 121;
+const frames = [];
+let loadedFrames = 0;
+let allLoaded = false;
+const frameCanvas = document.getElementById('frameCanvas');
+const frameCtx = frameCanvas.getContext('2d');
+const loader = document.getElementById('loader');
+const loaderBar = document.getElementById('loaderBar');
+let currentFrame = -1;
+
+function resizeFrameCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  frameCanvas.width = window.innerWidth * dpr;
+  frameCanvas.height = window.innerHeight * dpr;
+  frameCanvas.style.width = window.innerWidth + 'px';
+  frameCanvas.style.height = window.innerHeight + 'px';
+  if (currentFrame >= 0) drawFrame(currentFrame);
+}
+
+function drawFrame(index) {
+  const img = frames[index];
+  if (!img || !img.complete) return;
+  const dpr = window.devicePixelRatio || 1;
+  const cw = frameCanvas.width;
+  const ch = frameCanvas.height;
+
+  frameCtx.clearRect(0, 0, cw, ch);
+
+  const imgRatio = img.naturalWidth / img.naturalHeight;
+  const canvasRatio = cw / ch;
+  let drawW, drawH, drawX, drawY;
+
+  if (window.innerWidth > 768) {
+    // Desktop: cover-fit
+    if (canvasRatio > imgRatio) {
+      drawW = cw;
+      drawH = cw / imgRatio;
+    } else {
+      drawH = ch;
+      drawW = ch * imgRatio;
+    }
+    drawX = (cw - drawW) / 2;
+    drawY = (ch - drawH) / 2;
+  } else {
+    // Mobile: zoomed contain
+    const zoom = 1.2;
+    if (canvasRatio > imgRatio) {
+      drawH = ch * zoom;
+      drawW = drawH * imgRatio;
+    } else {
+      drawW = cw * zoom;
+      drawH = drawW / imgRatio;
+    }
+    drawX = (cw - drawW) / 2;
+    drawY = (ch - drawH) / 2;
+  }
+
+  frameCtx.drawImage(img, drawX, drawY, drawW, drawH);
+}
+
+// Preload all frames
+for (let i = 1; i <= FRAME_COUNT; i++) {
+  const img = new Image();
+  img.src = `frames/frame_${String(i).padStart(4, '0')}.jpg`;
+  img.onload = () => {
+    loadedFrames++;
+    const pct = (loadedFrames / FRAME_COUNT) * 100;
+    loaderBar.style.width = pct + '%';
+    if (loadedFrames === FRAME_COUNT) {
+      allLoaded = true;
+      // Draw first frame
+      currentFrame = 0;
+      resizeFrameCanvas();
+      drawFrame(0);
+      // Hide loader
+      loader.style.opacity = '0';
+      setTimeout(() => {
+        loader.style.display = 'none';
+        document.getElementById('navbar').classList.add('loaded');
+      }, 600);
+    }
+  };
+  img.onerror = () => {
+    loadedFrames++;
+    if (loadedFrames === FRAME_COUNT) {
+      allLoaded = true;
+      loader.style.opacity = '0';
+      setTimeout(() => {
+        loader.style.display = 'none';
+        document.getElementById('navbar').classList.add('loaded');
+      }, 600);
+    }
+  };
+  frames.push(img);
+}
+
+window.addEventListener('resize', resizeFrameCanvas);
+resizeFrameCanvas();
+
+/* ===== 3. SCROLL HANDLER — frames + progress + navbar + cards ===== */
+const navbar = document.getElementById('navbar');
+const scrollProgress = document.getElementById('scrollProgress');
+const annotationCards = document.querySelectorAll('.annotation-card');
+
+const SNAP_ZONES = [];
+const HOLD_DURATION = 600;
+let isSnapping = false;
+
+annotationCards.forEach(card => {
+  SNAP_ZONES.push({
+    show: parseFloat(card.dataset.show),
+    hide: parseFloat(card.dataset.hide),
+    snapped: false
+  });
+});
+
+let ticking = false;
+
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      const scrollY = window.scrollY;
+      const docHeight = document.body.scrollHeight - window.innerHeight;
+
+      // Scroll progress bar
+      const totalPct = (scrollY / docHeight) * 100;
+      scrollProgress.style.width = totalPct + '%';
+
+      // Navbar scroll-to-pill
+      navbar.classList.toggle('nav-scrolled', scrollY > 80);
+
+      // Frame animation
+      if (allLoaded) {
+        const section = document.querySelector('.scroll-animation');
+        const rect = section.getBoundingClientRect();
+        const scrollableHeight = section.offsetHeight - window.innerHeight;
+        const progress = Math.min(1, Math.max(0, -rect.top / scrollableHeight));
+        const frameIndex = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
+
+        if (frameIndex !== currentFrame) {
+          currentFrame = frameIndex;
+          drawFrame(frameIndex);
+        }
+
+        // Annotation cards
+        annotationCards.forEach((card, i) => {
+          const zone = SNAP_ZONES[i];
+          const visible = progress >= zone.show && progress <= zone.hide;
+          card.classList.toggle('visible', visible);
+
+          if (visible && !zone.snapped && !isSnapping) {
+            zone.snapped = true;
+            isSnapping = true;
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+              document.body.style.overflow = '';
+              isSnapping = false;
+            }, HOLD_DURATION);
+          }
+          if (!visible) {
+            zone.snapped = false;
+          }
+        });
+      }
+
+      ticking = false;
+    });
+    ticking = true;
+  }
+}, { passive: true });
+
+/* ===== 4. SPECS COUNT-UP ===== */
+function easeOutExpo(t) {
+  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
+function countUp(el, target, suffix = '', duration = 2000) {
+  const start = performance.now();
+  el.classList.add('counting');
+
+  function update(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = easeOutExpo(progress);
+    const current = eased * target;
+
+    el.textContent = (target % 1 === 0 ? Math.floor(current) : current.toFixed(1)) + suffix;
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      el.textContent = target + suffix;
+      el.classList.remove('counting');
+    }
+  }
+  requestAnimationFrame(update);
+}
+
+const specObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const items = entry.target.querySelectorAll('.spec-item');
+      items.forEach((item, i) => {
+        setTimeout(() => {
+          const numEl = item.querySelector('.spec-number');
+          const target = parseFloat(item.dataset.target);
+          const suffix = item.dataset.suffix || '';
+          countUp(numEl, target, suffix);
+        }, i * 200);
+      });
+      specObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+
+specObserver.observe(document.getElementById('specs'));
+
+/* ===== 5. TESTIMONIALS DRAG-TO-SCROLL ===== */
+(function initTestimonials() {
+  const track = document.getElementById('testimonialsTrack');
+  if (!track) return;
+  let isDown = false, startX, scrollLeft;
+
+  track.addEventListener('mousedown', (e) => {
+    isDown = true;
+    startX = e.pageX - track.offsetLeft;
+    scrollLeft = track.scrollLeft;
+  });
+  track.addEventListener('mouseleave', () => isDown = false);
+  track.addEventListener('mouseup', () => isDown = false);
+  track.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - track.offsetLeft;
+    track.scrollLeft = scrollLeft - (x - startX);
+  });
+})();
+
+/* ===== 6. CONFETTI BURST ===== */
+function fireConfetti(btn) {
+  const rect = btn.getBoundingClientRect();
+  const originX = rect.left + rect.width / 2;
+  const originY = rect.top + rect.height / 2;
+  const colors = ['#f43f5e', '#fb7185', '#fbbf24', '#a855f7', '#38bdf8', '#4ade80', '#f97316', '#e879f9'];
+  const shapes = ['square', 'circle', 'triangle'];
+
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    const size = Math.random() * 8 + 6;
+    const angle = Math.random() * Math.PI * 2;
+    const velocity = Math.random() * 300 + 100;
+    const dx = Math.cos(angle) * velocity;
+    const dy = Math.sin(angle) * velocity - 200;
+
+    piece.style.width = size + 'px';
+    piece.style.height = size + 'px';
+    piece.style.left = originX + 'px';
+    piece.style.top = originY + 'px';
+    piece.style.background = color;
+
+    if (shape === 'circle') {
+      piece.style.borderRadius = '50%';
+    } else if (shape === 'triangle') {
+      piece.style.width = '0';
+      piece.style.height = '0';
+      piece.style.background = 'transparent';
+      piece.style.borderLeft = (size/2) + 'px solid transparent';
+      piece.style.borderRight = (size/2) + 'px solid transparent';
+      piece.style.borderBottom = size + 'px solid ' + color;
+    }
+
+    piece.style.animation = 'none';
+    document.body.appendChild(piece);
+
+    // Animate with physics
+    let x = originX, y = originY;
+    let vx = dx * (0.5 + Math.random()), vy = dy * (0.5 + Math.random());
+    let rotation = 0;
+    let rotationSpeed = (Math.random() - 0.5) * 20;
+    let opacity = 1;
+    const gravity = 600;
+    let lastTime = performance.now();
+
+    function animatePiece(now) {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+      vx *= 0.99;
+      vy += gravity * dt;
+      x += vx * dt;
+      y += vy * dt;
+      rotation += rotationSpeed;
+      opacity -= dt * 0.5;
+
+      if (opacity <= 0 || y > window.innerHeight + 50) {
+        piece.remove();
+        return;
+      }
+
+      piece.style.left = x + 'px';
+      piece.style.top = y + 'px';
+      piece.style.transform = `rotate(${rotation}deg)`;
+      piece.style.opacity = opacity;
+      requestAnimationFrame(animatePiece);
+    }
+    requestAnimationFrame(animatePiece);
+  }
+}
+
+/* ===== 7. THREE.JS CARD SCANNER / PARTICLE SHOWCASE ===== */
+(function initCardScanner() {
+  const container = document.getElementById('scannerCanvas');
+  if (!container) return;
+
+  const width = container.clientWidth || 800;
+  const height = container.clientHeight || 500;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+  camera.position.z = 5;
+
+  const renderer = new THREE.WebGLRenderer({ canvas: container, antialias: true, alpha: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+
+  // Create flame/book shape with particles
+  const PARTICLE_COUNT = 3000;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(PARTICLE_COUNT * 3);
+  const targets = new Float32Array(PARTICLE_COUNT * 3);
+  const colors = new Float32Array(PARTICLE_COUNT * 3);
+  const sizes = new Float32Array(PARTICLE_COUNT);
+
+  // Rose/accent color
+  const accentR = 244/255, accentG = 63/255, accentB = 94/255;
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    // Start from random scattered positions
+    positions[i*3]   = (Math.random() - 0.5) * 20;
+    positions[i*3+1] = (Math.random() - 0.5) * 20;
+    positions[i*3+2] = (Math.random() - 0.5) * 20;
+
+    // Target: flame/teardrop shape
+    const t = Math.random();
+    const angle = Math.random() * Math.PI * 2;
+    let r, y;
+
+    if (t < 0.7) {
+      // Body of flame (ellipsoid)
+      r = Math.random() * 1.2;
+      y = (Math.random() - 0.4) * 2.5;
+      const bodyR = r * Math.cos(y * 0.6) * 0.8;
+      targets[i*3]   = Math.cos(angle) * bodyR;
+      targets[i*3+1] = y;
+      targets[i*3+2] = Math.sin(angle) * bodyR * 0.3;
+    } else {
+      // Tip of flame
+      r = Math.random() * 0.4;
+      y = 1.5 + Math.random() * 1.5;
+      const tipR = r * (1 - (y - 1.5) / 1.5) * 0.6;
+      targets[i*3]   = Math.cos(angle) * tipR;
+      targets[i*3+1] = y;
+      targets[i*3+2] = Math.sin(angle) * tipR * 0.3;
+    }
+
+    // Color: mix of rose, orange, gold
+    const colorMix = Math.random();
+    if (colorMix < 0.5) {
+      colors[i*3] = accentR; colors[i*3+1] = accentG; colors[i*3+2] = accentB;
+    } else if (colorMix < 0.8) {
+      colors[i*3] = 1; colors[i*3+1] = 0.45; colors[i*3+2] = 0.15; // orange
+    } else {
+      colors[i*3] = 0.98; colors[i*3+1] = 0.75; colors[i*3+2] = 0.15; // gold
+    }
+
+    sizes[i] = Math.random() * 3 + 1.5;
+  }
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uProgress: { value: 0 }
+    },
+    vertexShader: `
+      attribute float size;
+      varying vec3 vColor;
+      uniform float uTime;
+      void main() {
+        vColor = color;
+        vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size * (300.0 / -mvPos.z);
+        gl_Position = projectionMatrix * mvPos;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      void main() {
+        float dist = length(gl_PointCoord - vec2(0.5));
+        if (dist > 0.5) discard;
+        float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
+        gl_FragColor = vec4(vColor, alpha * 0.85);
+      }
+    `,
+    vertexColors: true,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+
+  const points = new THREE.Points(geometry, material);
+  scene.add(points);
+
+  let animationProgress = 0;
+  let isVisible = false;
+
+  const scannerObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      isVisible = entry.isIntersecting;
+    });
+  }, { threshold: 0.2 });
+
+  scannerObserver.observe(document.getElementById('card-scanner'));
+
+  function animateScanner() {
+    requestAnimationFrame(animateScanner);
+
+    if (isVisible && animationProgress < 1) {
+      animationProgress = Math.min(1, animationProgress + 0.008);
+    }
+
+    const posArray = geometry.attributes.position.array;
+    const ease = easeOutExpo(animationProgress);
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const i3 = i * 3;
+      // Lerp from scattered to target
+      posArray[i3]   += (targets[i3]   - posArray[i3])   * 0.02 * (0.5 + ease * 0.5);
+      posArray[i3+1] += (targets[i3+1] - posArray[i3+1]) * 0.02 * (0.5 + ease * 0.5);
+      posArray[i3+2] += (targets[i3+2] - posArray[i3+2]) * 0.02 * (0.5 + ease * 0.5);
+
+      // Add subtle float after settling
+      if (ease > 0.8) {
+        const time = Date.now() * 0.001;
+        posArray[i3]   += Math.sin(time + i * 0.1) * 0.002;
+        posArray[i3+1] += Math.cos(time + i * 0.15) * 0.003;
+      }
+    }
+    geometry.attributes.position.needsUpdate = true;
+
+    // Slow rotation
+    points.rotation.y += 0.003;
+    points.rotation.x = Math.sin(Date.now() * 0.0003) * 0.1;
+
+    material.uniforms.uTime.value = Date.now() * 0.001;
+    material.uniforms.uProgress.value = ease;
+
+    renderer.render(scene, camera);
+  }
+  animateScanner();
+
+  // Handle resize
+  window.addEventListener('resize', () => {
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  });
+})();
+
+/* ===== 8. SMOOTH SCROLL FOR NAV LINKS ===== */
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+});
+</script>
+</body>
+</html>

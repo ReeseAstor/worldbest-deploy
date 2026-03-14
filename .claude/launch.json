@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ember-scroll-stop",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Yunglung/AppData/Roaming/npm/node_modules/serve/build/main.js", "D:/Downloads/ember-scroll-stop", "-p", "8080", "--no-clipboard"],
+      "port": 8080
+    }
+  ]
+}
