@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
@@ -324,13 +324,9 @@ export function ManuscriptEditor({
         </div>
       </div>
 
-      {/* Bubble Menu for selections */}
-      {editor && (
-        <BubbleMenu 
-          editor={editor} 
-          tippyOptions={{ duration: 100 }}
-          className="flex items-center gap-1 p-1 rounded-lg border bg-background shadow-lg"
-        >
+      {/* Inline selection toolbar */}
+      {editor && !editor.state.selection.empty && (
+        <div className="flex items-center gap-1 p-1 rounded-lg border bg-background shadow-lg absolute z-50">
           <Button
             variant="ghost"
             size="icon"
@@ -363,7 +359,7 @@ export function ManuscriptEditor({
             <Sparkles className="h-3 w-3 mr-1" />
             Polish
           </Button>
-        </BubbleMenu>
+        </div>
       )}
 
       {/* Editor Content */}

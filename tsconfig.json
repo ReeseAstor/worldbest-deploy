@@ -29,7 +29,9 @@
       "@/types/*": ["./src/types/*"],
       "@/styles/*": ["./src/styles/*"],
       "@worldbest/shared-types": ["./packages/shared-types/src"],
-      "@worldbest/ui-components": ["./packages/ui-components/src"]
+      "@worldbest/ui-components": ["./packages/ui-components/src"],
+      "@ember/shared-types": ["./packages/shared-types/src"],
+      "@ember/ui-components": ["./packages/ui-components/src"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

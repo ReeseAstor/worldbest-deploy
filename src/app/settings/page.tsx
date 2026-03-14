@@ -43,7 +43,11 @@ import {
   Cloud,
   Database,
   Link as LinkIcon,
-  RefreshCw
+  RefreshCw,
+  Flame,
+  Mic2,
+  BookHeart,
+  PenTool
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
 import { useCurrentProfile, useUpdateProfile } from '@/hooks/queries/use-profile';
@@ -117,7 +121,10 @@ const plans = [
 export default function SettingsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'integrations' | 'profile' | 'account' | 'billing' | 'notifications' | 'preferences' | 'security'>('integrations');
+  const { data: profileData } = useCurrentProfile();
+  const updateProfile = useUpdateProfile();
+  const toastActions = useToast();
+  const [activeTab, setActiveTab] = useState<'integrations' | 'profile' | 'account' | 'billing' | 'notifications' | 'preferences' | 'security' | 'writing'>('integrations');
   const [loading, setLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
@@ -190,6 +197,9 @@ export default function SettingsPage() {
   const [vercelPreviewSync, setVercelPreviewSync] = useState(true);
   const [vercelDevelopmentSync, setVercelDevelopmentSync] = useState(false);
   const [vercelEnvPrefix, setVercelEnvPrefix] = useState('NEXT_PUBLIC_');
+  const [steamLevel, setSteamLevel] = useState(3);
+  const [voiceProfileEnabled, setVoiceProfileEnabled] = useState(false);
+  const [deviationThreshold, setDeviationThreshold] = useState(15);
 
   const handleSaveProfile = async () => {
     try {

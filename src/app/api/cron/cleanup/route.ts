@@ -12,7 +12,7 @@ import { headers } from 'next/headers';
  */
 export async function GET(request: Request) {
   // Verify the request is from Vercel Cron
-  const headersList = headers();
+  const headersList = await headers();
   const cronSecret = headersList.get('authorization');
   
   if (cronSecret !== `Bearer ${process.env.CRON_SECRET}`) {
