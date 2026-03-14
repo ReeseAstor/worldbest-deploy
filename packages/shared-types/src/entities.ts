@@ -1,5 +1,7 @@
 import type { Currency } from './enums';
 import type { AIPersona, AIGenerationParams } from './ai';
+import type { SteamSettings, SteamLevelValue, SceneSteamOverride } from './steam';
+import type { TropeSelection } from './beat-sheets';
 
 // Core Entity Types for WorldBest Platform
 
