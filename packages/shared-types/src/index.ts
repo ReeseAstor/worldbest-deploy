@@ -46,6 +46,14 @@ export {
   PlaceholderIntensity,
   RenderingMode,
   EconomyType,
+  // Heat/Steam level types
+  HeatLevel,
+  HEAT_LEVEL_LABELS,
+  HEAT_LEVEL_DESCRIPTIONS,
+  // Line edit types
+  LineEditType,
+  // Steam calibration
+  type SteamCalibration,
 } from './entities';
 export * from './enums';
 

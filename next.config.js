@@ -12,9 +12,8 @@ const nextConfig = {
   // Compression enabled by default
   compress: true,
   
-  experimental: {
-    serverComponentsExternalPackages: ['@ember/database'],
-  },
+  // External packages for server components (moved from experimental)
+  serverExternalPackages: ['@ember/database'],
   
   transpilePackages: ['@ember/shared-types', '@ember/ui-components'],
   

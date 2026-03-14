@@ -558,3 +558,49 @@ export enum EconomyType {
   SOCIALIST = 'socialist',
   MIXED = 'mixed'
 }
+
+// Heat Level (Steam Level) for content calibration
+export enum HeatLevel {
+  CLOSED_DOOR = 1,
+  WARM = 2,
+  STEAMY = 3,
+  SPICY = 4,
+  SCORCHING = 5
+}
+
+export const HEAT_LEVEL_LABELS: Record<HeatLevel, string> = {
+  [HeatLevel.CLOSED_DOOR]: 'Closed Door',
+  [HeatLevel.WARM]: 'Warm',
+  [HeatLevel.STEAMY]: 'Steamy',
+  [HeatLevel.SPICY]: 'Spicy',
+  [HeatLevel.SCORCHING]: 'Scorching'
+};
+
+export const HEAT_LEVEL_DESCRIPTIONS: Record<HeatLevel, string> = {
+  [HeatLevel.CLOSED_DOOR]: 'Fade to black before anything physical beyond kissing',
+  [HeatLevel.WARM]: 'Foreplay described, act implied with literary language',
+  [HeatLevel.STEAMY]: 'Full scenes with moderate explicitness, emotional balance',
+  [HeatLevel.SPICY]: 'Detailed extended scenes, kink elements may be introduced',
+  [HeatLevel.SCORCHING]: 'No content limits within consent boundaries'
+};
+
+// Line edit types for editor analysis
+export enum LineEditType {
+  FILTER_WORD = 'filter_word',
+  SHOW_DONT_TELL = 'show_dont_tell',
+  DIALOGUE_TAG = 'dialogue_tag',
+  POV_INCONSISTENCY = 'pov_inconsistency',
+  PASSIVE_VOICE = 'passive_voice',
+  ADVERB_OVERUSE = 'adverb_overuse',
+  REPETITION = 'repetition'
+}
+
+// Steam calibration settings for projects
+export interface SteamCalibration {
+  project_heat_level: HeatLevel;
+  allow_scene_overrides: boolean;
+  custom_vocabulary?: {
+    allowed?: string[];
+    restricted?: string[];
+  };
+}
