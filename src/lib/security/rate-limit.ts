@@ -141,11 +141,11 @@ function checkInMemoryRateLimit(
 if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now();
-    for (const [key, value] of inMemoryStore.entries()) {
+    inMemoryStore.forEach((value, key) => {
       if (now > value.resetTime) {
         inMemoryStore.delete(key);
       }
-    }
+    });
   }, 300000);
 }
 

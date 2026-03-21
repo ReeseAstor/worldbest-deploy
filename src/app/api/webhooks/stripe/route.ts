@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { constructWebhookEvent, parseSubscription } from '@/lib/stripe/server';
 import { getPlanByPriceId } from '@/lib/stripe/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
-type SupabaseAdmin = SupabaseClient<unknown, 'public', unknown>;
+// Get the return type of createClient, excluding null
+type SupabaseAdmin = NonNullable<ReturnType<typeof getSupabaseAdmin>>;
 
 // Create a Supabase admin client for database operations
 function getSupabaseAdmin() {

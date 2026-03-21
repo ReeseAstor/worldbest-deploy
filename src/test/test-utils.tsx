@@ -1,5 +1,6 @@
 import React, { ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
+import { expect } from 'vitest'
 
 // Custom render function that wraps components with necessary providers
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {

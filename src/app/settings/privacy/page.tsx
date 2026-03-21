@@ -29,7 +29,7 @@ interface CommunicationPreferences {
 
 export default function PrivacySettingsPage() {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { toast: showToast } = useToast();
   
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
@@ -77,12 +77,12 @@ export default function PrivacySettingsPage() {
       setExportSuccess(true);
       showToast({
         type: 'success',
-        message: 'Your data has been exported successfully.',
+        title: 'Your data has been exported successfully.',
       });
     } catch (error) {
       showToast({
         type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to export data',
+        title: error instanceof Error ? error.message : 'Failed to export data',
       });
     } finally {
       setIsExporting(false);
@@ -110,7 +110,7 @@ export default function PrivacySettingsPage() {
 
       showToast({
         type: 'success',
-        message: 'Account deletion scheduled. You will be signed out.',
+        title: 'Account deletion scheduled. You will be signed out.',
       });
 
       // Redirect to home after short delay
@@ -120,7 +120,7 @@ export default function PrivacySettingsPage() {
     } catch (error) {
       showToast({
         type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to delete account',
+        title: error instanceof Error ? error.message : 'Failed to delete account',
       });
       setIsDeleting(false);
     }
@@ -141,14 +141,14 @@ export default function PrivacySettingsPage() {
       
       showToast({
         type: 'success',
-        message: 'Preferences updated',
+        title: 'Preferences updated',
       });
     } catch {
       // Revert on error
       setCommunications(communications);
       showToast({
         type: 'error',
-        message: 'Failed to update preferences',
+        title: 'Failed to update preferences',
       });
     } finally {
       setIsSavingComms(false);
