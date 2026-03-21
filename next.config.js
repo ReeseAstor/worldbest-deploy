@@ -1,3 +1,5 @@
+const { withSentryConfig } = require('@sentry/nextjs');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enable standalone output for Docker/production deployments
@@ -85,4 +87,26 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Sentry configuration options
+const sentryWebpackPluginOptions = {
+  // Suppresses source map uploading logs during build
+  silent: true,
+  org: "88away",
+  project: "ember-web",
+};
+
+const sentryOptions = {
+  // Upload larger source maps for better debugging
+  widenClientFileUpload: true,
+  // Hide source maps from client bundles
+  hideSourceMaps: true,
+  // Disable Sentry logger to reduce bundle size
+  disableLogger: true,
+  // Disable automatic instrumentation to avoid build issues when DSN not set
+  automaticVercelMonitors: false,
+};
+
+// Only wrap with Sentry if DSN is configured
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions, sentryOptions)
+  : nextConfig;

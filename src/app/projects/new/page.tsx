@@ -196,7 +196,7 @@ export default function NewProjectPage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, synopsis: e.target.value }))}
                 />
                 <p className="text-sm text-muted-foreground">
-                  A brief overview of your story's plot, themes, and main characters
+                  A brief overview of your story&apos;s plot, themes, and main characters
                 </p>
               </div>
 

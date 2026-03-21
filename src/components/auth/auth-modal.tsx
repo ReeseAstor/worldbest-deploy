@@ -227,7 +227,7 @@ export function AuthModal({ mode, onClose, onSwitchMode }: AuthModalProps) {
           <div className="mt-4 text-center text-sm">
             {mode === 'login' ? (
               <>
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Button
                   variant="link"
                   className="h-auto p-0"

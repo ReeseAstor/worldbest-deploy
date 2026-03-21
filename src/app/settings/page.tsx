@@ -1365,7 +1365,7 @@ export default function SettingsPage() {
                     <div>
                       <p className="font-medium text-sm">Show Activity Status</p>
                       <p className="text-xs text-muted-foreground">
-                        Let others see when you're online
+                        Let others see when you&apos;re online
                       </p>
                     </div>
                     <button className="w-12 h-6 rounded-full bg-gray-200">

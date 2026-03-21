@@ -412,7 +412,7 @@ export default function WritePage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-lg font-semibold">The Dragon's Legacy</h1>
+            <h1 className="text-lg font-semibold">The Dragon&apos;s Legacy</h1>
             <p className="text-sm text-muted-foreground">
               Chapter {currentChapter.number}: {currentChapter.title}
             </p>
@@ -688,7 +688,7 @@ export default function WritePage() {
                   <Card className="cursor-pointer hover:bg-accent">
                     <CardContent className="p-3">
                       <p className="text-sm line-clamp-3">
-                        "Consider adding more sensory details to enhance the atmosphere..."
+                        &quot;Consider adding more sensory details to enhance the atmosphere...&quot;
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
                         Coach • 2 min ago

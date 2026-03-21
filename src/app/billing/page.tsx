@@ -92,7 +92,7 @@ export default function BillingPage() {
       <Card>
         <CardHeader>
           <CardTitle>Current Plan</CardTitle>
-          <CardDescription>You're currently on the Free plan</CardDescription>
+          <CardDescription>You&apos;re currently on the Free plan</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
