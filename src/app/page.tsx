@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import LandingPage from '@/components/landing/landing-page';
+import { LandingPageJsonLd } from '@/components/seo/json-ld';
 
 export const dynamic = 'force-dynamic';
-// import { ScrollStopLanding } from '@/components/landing/scroll-stop-landing'; // Previous landing page
 
 export default async function HomePage() {
   try {
@@ -17,5 +17,10 @@ export default async function HomePage() {
     console.error('Auth check error:', error);
   }
 
-  return <LandingPage />;
+  return (
+    <>
+      <LandingPageJsonLd />
+      <LandingPage />
+    </>
+  );
 }

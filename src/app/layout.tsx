@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Inter, Merriweather } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
+import { GoogleAnalytics } from '@/components/analytics/google-analytics';
+import { CookieConsent } from '@/components/gdpr';
 import '@/styles/globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
@@ -13,10 +15,10 @@ const merriweather = Merriweather({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | 88away',
-    default: '88away - AI-Powered Romantasy Ghostwriting Platform',
+    template: '%s | Ember - AI Writing Platform',
+    default: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
   },
-  description: 'The only AI writing platform built for steamy romantasy. Genre-tuned drafting, steam calibration, voice fingerprinting, series bible, and KDP-ready export.',
+  description: 'AI-powered writing platform for romance & fantasy authors. Steam calibration, voice fingerprinting, series bible & KDP export.',
   keywords: [
     'romantasy',
     'romance writing',
@@ -30,36 +32,41 @@ export const metadata: Metadata = {
     'book writing software',
     'romance author tools',
     'indie author tools',
+    'AI writing assistant',
+    'fiction writing software',
   ],
   authors: [{ name: '88Away LLC' }],
-  creator: '88away',
+  creator: 'Ember',
   publisher: '88Away LLC',
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://88away.com'),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: '/',
-    title: '88away - AI-Powered Romantasy Ghostwriting Platform',
-    description: 'The only AI writing platform built for steamy romantasy. Genre-tuned drafting, steam calibration, voice fingerprinting, and indie publishing pipeline.',
-    siteName: '88away',
+    title: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
+    description: 'AI-powered writing platform for romance & fantasy authors. Steam calibration, voice fingerprinting, series bible & KDP export.',
+    siteName: 'Ember',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: '88away - AI-Powered Romantasy Ghostwriting Platform',
+        alt: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: '88away - AI-Powered Romantasy Ghostwriting Platform',
-    description: 'The only AI writing platform built for steamy romantasy. Genre-tuned drafting, steam calibration, voice fingerprinting, and indie publishing pipeline.',
+    title: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
+    description: 'AI-powered writing platform for romance & fantasy authors. Steam calibration, voice fingerprinting, series bible & KDP export.',
     images: ['/og-image.png'],
     creator: '@88away',
   },
@@ -94,9 +101,11 @@ export default function RootLayout({
         className={`${inter.variable} ${merriweather.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
+        <GoogleAnalytics />
         <Providers>
           {children}
           <Toaster />
+          <CookieConsent />
         </Providers>
       </body>
     </html>

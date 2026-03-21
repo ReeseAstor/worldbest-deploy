@@ -8,7 +8,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@ember/shared-types": "file:./packages/shared-types",
@@ -49,6 +54,8 @@
     "@tiptap/react": "^3.20.1",
     "@tiptap/starter-kit": "^3.20.1",
     "@types/canvas-confetti": "^1.9.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "autoprefixer": "^10.4.16",
     "axios": "^1.13.5",
     "canvas-confetti": "^1.9.4",
@@ -74,23 +81,31 @@
     "remark-gfm": "^4.0.0",
     "socket.io-client": "^4.7.4",
     "sonner": "^2.0.7",
+    "stripe": "^20.4.1",
     "tailwind-merge": "^2.2.0",
     "tailwindcss": "^3.3.6",
     "zod": "^3.22.4",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.10",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.42",
     "@types/react-beautiful-dnd": "^13.1.7",
     "@types/react-dom": "^18.2.17",
     "@types/react-window": "^1.8.8",
+    "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^8.55.0",
     "eslint-config-next": "^14.0.4",
-    "typescript": "^5.3.2"
+    "jsdom": "^29.0.1",
+    "typescript": "^5.3.2",
+    "vitest": "^4.1.0"
   },
   "engines": {
     "node": ">=18.0.0 <24.0.0"

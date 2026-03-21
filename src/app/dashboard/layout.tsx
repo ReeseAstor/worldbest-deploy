@@ -1,8 +1,22 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 
 export const dynamic = 'force-dynamic';
-import { DashboardShell } from '@/components/dashboard/dashboard-shell';
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description: 'Manage your writing projects, track progress, and access AI writing tools.',
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+};
 
 export default async function DashboardLayout({
   children,
