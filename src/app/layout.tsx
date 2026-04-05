@@ -6,11 +6,12 @@ import { GoogleAnalytics } from '@/components/analytics/google-analytics';
 import { CookieConsent } from '@/components/gdpr';
 import '@/styles/globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-const merriweather = Merriweather({ 
-  weight: ['400', '700'], 
-  subsets: ['latin'], 
-  variable: '--font-serif' 
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+const merriweather = Merriweather({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+  variable: '--font-serif',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -96,7 +97,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body 
         className={`${inter.variable} ${merriweather.variable} font-sans antialiased`}
         suppressHydrationWarning

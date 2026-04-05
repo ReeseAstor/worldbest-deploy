@@ -49,16 +49,20 @@ jobs:
       - name: Run ESLint
         run: pnpm lint
         continue-on-error: false
-      
+
       - name: Run TypeScript type check
         run: pnpm type-check
         continue-on-error: false
-      
+
+      - name: Run unit tests
+        run: pnpm test:run
+        continue-on-error: false
+
       - name: Build application
         run: pnpm build
         env:
           NEXT_TELEMETRY_DISABLED: 1
-      
+
       - name: Check bundle size
         run: |
           BUNDLE_SIZE=$(du -sb .next/static | awk '{print $1}')

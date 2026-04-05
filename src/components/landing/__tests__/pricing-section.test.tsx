@@ -18,11 +18,11 @@ describe('PricingSection', () => {
 
   it('renders all 3 pricing tiers', () => {
     render(<PricingSection />)
-    
-    // Check tier names
-    expect(screen.getByText('Spark')).toBeInTheDocument()
-    expect(screen.getByText('Flame')).toBeInTheDocument()
-    expect(screen.getByText('Inferno')).toBeInTheDocument()
+
+    // Check tier names (may appear in both cards and comparison table)
+    expect(screen.getAllByText('Spark').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Flame').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Inferno').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders tier descriptions', () => {

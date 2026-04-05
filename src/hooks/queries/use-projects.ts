@@ -12,6 +12,7 @@ export function useProjects() {
   return useQuery({
     queryKey: queryKeys.projects.all,
     queryFn: () => projectsService.getAll(),
+    staleTime: 5 * 60 * 1000, // Projects list is stable - 5 min stale time
   });
 }
 
@@ -23,6 +24,7 @@ export function useProject(id: string | undefined) {
     queryKey: queryKeys.projects.detail(id || ''),
     queryFn: () => projectsService.getById(id!),
     enabled: !!id,
+    staleTime: 2 * 60 * 1000, // Single project detail - 2 min stale time
   });
 }
 
