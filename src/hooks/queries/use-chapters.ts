@@ -13,6 +13,7 @@ export function useChapters(projectId: string | undefined) {
     queryKey: queryKeys.chapters.byProject(projectId || ''),
     queryFn: () => chaptersService.getByProject(projectId!),
     enabled: !!projectId,
+    staleTime: 30 * 1000, // Chapters change during editing - 30s stale time
   });
 }
 

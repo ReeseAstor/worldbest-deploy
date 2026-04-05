@@ -1,18 +1,36 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Button } from '@ember/ui-components';
 import { Flame, Menu, X } from 'lucide-react';
 import { AuthModal } from '@/components/auth/auth-modal';
 
-// Import all section components
+// Hero loads eagerly (above the fold)
 import { HeroSection } from './hero-section';
-import { FeaturesSection } from './features-section';
-import { DemoSection } from './demo-section';
-import { PricingSection } from './pricing-section';
-import { TestimonialsSection } from './testimonials-section';
-import { FAQSection } from './faq-section';
+
+// Below-the-fold sections loaded lazily
+const FeaturesSection = dynamic(
+  () => import('./features-section').then((m) => ({ default: m.FeaturesSection })),
+  { ssr: true }
+);
+const DemoSection = dynamic(
+  () => import('./demo-section').then((m) => ({ default: m.DemoSection })),
+  { ssr: true }
+);
+const PricingSection = dynamic(
+  () => import('./pricing-section').then((m) => ({ default: m.PricingSection })),
+  { ssr: true }
+);
+const TestimonialsSection = dynamic(
+  () => import('./testimonials-section').then((m) => ({ default: m.TestimonialsSection })),
+  { ssr: true }
+);
+const FAQSection = dynamic(
+  () => import('./faq-section').then((m) => ({ default: m.FAQSection })),
+  { ssr: true }
+);
 
 const navLinks = [
   { label: 'Features', href: '#features' },

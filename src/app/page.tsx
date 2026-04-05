@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import LandingPage from '@/components/landing/landing-page';
 import { LandingPageJsonLd } from '@/components/seo/json-ld';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Revalidate landing page every hour
 
 export default async function HomePage() {
   try {
@@ -14,7 +14,7 @@ export default async function HomePage() {
       redirect('/dashboard');
     }
   } catch (error) {
-    console.error('Auth check error:', error);
+    // Auth check failed - show landing page
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@ember/ui-components';
@@ -38,31 +38,34 @@ export default function ProjectsPage() {
   const genres = ['all', 'Fantasy', 'Sci-Fi', 'Mystery', 'Romance', 'Thriller', 'Horror', 'Literary', 'Historical'];
   const statuses = ['all', 'planning', 'drafting', 'editing', 'complete', 'published'];
 
-  const filteredProjects = (projects || []).filter(project => {
-    const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (project.description || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGenre = selectedGenre === 'all' || project.genre.toLowerCase() === selectedGenre.toLowerCase();
-    const matchesStatus = selectedStatus === 'all' || project.status === selectedStatus;
-    
-    return matchesSearch && matchesGenre && matchesStatus;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case 'updated':
-        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      case 'created':
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      case 'title':
-        return a.title.localeCompare(b.title);
-      case 'progress':
-        const progressA = a.target_word_count > 0 ? (a.current_word_count / a.target_word_count) * 100 : 0;
-        const progressB = b.target_word_count > 0 ? (b.current_word_count / b.target_word_count) * 100 : 0;
-        return progressB - progressA;
-      default:
-        return 0;
-    }
-  });
+  const filteredProjects = useMemo(() => {
+    return (projects || []).filter(project => {
+      const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (project.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesGenre = selectedGenre === 'all' || project.genre.toLowerCase() === selectedGenre.toLowerCase();
+      const matchesStatus = selectedStatus === 'all' || project.status === selectedStatus;
 
-  const getStatusColor = (status: Project['status']) => {
+      return matchesSearch && matchesGenre && matchesStatus;
+    }).sort((a, b) => {
+      switch (sortBy) {
+        case 'updated':
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        case 'created':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'progress': {
+          const progressA = a.target_word_count > 0 ? (a.current_word_count / a.target_word_count) * 100 : 0;
+          const progressB = b.target_word_count > 0 ? (b.current_word_count / b.target_word_count) * 100 : 0;
+          return progressB - progressA;
+        }
+        default:
+          return 0;
+      }
+    });
+  }, [projects, searchQuery, selectedGenre, selectedStatus, sortBy]);
+
+  const getStatusColor = useCallback((status: Project['status']) => {
     switch (status) {
       case 'planning':
         return 'text-blue-600 bg-blue-100';
@@ -77,9 +80,9 @@ export default function ProjectsPage() {
       default:
         return 'text-gray-600 bg-gray-100';
     }
-  };
+  }, []);
 
-  const ProjectCard = ({ project }: { project: Project }) => {
+  const ProjectCard = memo(({ project }: { project: Project }) => {
     const progress = project.target_word_count > 0 
       ? Math.min((project.current_word_count / project.target_word_count) * 100, 100)
       : 0;
@@ -167,7 +170,8 @@ export default function ProjectsPage() {
         </CardContent>
       </Card>
     );
-  };
+  });
+  ProjectCard.displayName = 'ProjectCard';
 
   if (error) {
     return (
