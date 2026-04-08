@@ -49,6 +49,21 @@ class SuggestionAction(BaseModel):
     action: str  # "accept" | "reject"
 
 
+class OriginalityReviewRequest(BaseModel):
+    text: str
+
+
+class OriginalityReviewEnqueueOut(BaseModel):
+    task_id: str
+    status: str
+
+
+class OriginalityReviewStatusOut(BaseModel):
+    task_id: str
+    status: str
+    result: dict | None = None
+
+
 class LineEditSuggestionOut(BaseModel):
     id: str
     edit_type: str
@@ -61,7 +76,9 @@ class LineEditSuggestionOut(BaseModel):
 # ── Helpers ──────────────────────────────────────────────────────────────
 
 
-async def _sse_stream(generator: AsyncGenerator[str, None]) -> AsyncGenerator[bytes, None]:
+async def _sse_stream(
+    generator: AsyncGenerator[str, None],
+) -> AsyncGenerator[bytes, None]:
     """Wrap an async string generator as SSE ``data:`` frames."""
     async for chunk in generator:
         yield f"data: {json.dumps({'content': chunk})}\n\n".encode()
@@ -69,6 +86,23 @@ async def _sse_stream(generator: AsyncGenerator[str, None]) -> AsyncGenerator[by
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────
+
+
+def _enqueue_originality_task(text: str) -> str:
+    """Enqueue an originality review task and return task id."""
+    from app.tasks.originality import review_text
+
+    task = review_text.delay(text)
+    return str(task.id)
+
+
+def _fetch_originality_task(task_id: str) -> tuple[str, dict | None]:
+    """Fetch task status and optional result payload."""
+    from app.workers.celery_app import celery_app
+
+    async_result = celery_app.AsyncResult(task_id)
+    result = async_result.result if async_result.successful() else None
+    return str(async_result.status), result
 
 
 @router.post("/ai/generate")
@@ -166,3 +200,35 @@ async def handle_suggestion(
         "action": body.action,
         "status": "applied" if body.action == "accept" else "dismissed",
     }
+
+
+@router.post(
+    "/ai/originality/review",
+    response_model=OriginalityReviewEnqueueOut,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def enqueue_originality_review(
+    body: OriginalityReviewRequest,
+    user_id: str = Depends(get_current_user),
+) -> dict:
+    """Queue originality review + rewrite loop in Celery."""
+    _ = user_id
+    task_id = _enqueue_originality_task(body.text)
+    return {"task_id": task_id, "status": "queued"}
+
+
+@router.get(
+    "/ai/originality/review/{task_id}",
+    response_model=OriginalityReviewStatusOut,
+)
+async def get_originality_review_status(
+    task_id: str,
+    user_id: str = Depends(get_current_user),
+) -> dict:
+    """Fetch status/result for a queued originality review task."""
+    _ = user_id
+    status_text, result = _fetch_originality_task(task_id)
+    payload = {"task_id": task_id, "status": status_text}
+    if result is not None:
+        payload["result"] = result
+    return payload
