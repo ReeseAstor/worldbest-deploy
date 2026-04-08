@@ -31,6 +31,15 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
 
+    # ── Background workers / originality checks ──────────────────────
+    REDIS_URL: str = "redis://localhost:6379/0"
+    ORIGINALITY_MOCK_API_URL: str = ""
+    COPYSCAPE_MOCK_API_URL: str = ""
+    REWRITE_MOCK_API_URL: str = ""
+    ORIGINALITY_AI_SCORE_THRESHOLD: float = 20.0
+    COPYSCAPE_MATCH_THRESHOLD: int = 0
+    ORIGINALITY_MAX_REWRITE_LOOPS: int = 3
+
     # ── CORS ──────────────────────────────────────────────────────────
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
