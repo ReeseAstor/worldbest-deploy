@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@ember/ui-components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
@@ -22,20 +23,20 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { data: projects, isLoading } = useProjects();
 
-  const getProgressPercentage = (current: number, target: number) => {
+  const getProgressPercentage = useCallback((current: number, target: number) => {
     if (!target) return 0;
     return Math.min((current / target) * 100, 100);
-  };
+  }, []);
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = useCallback((dateStr: string) => {
     const date = new Date(dateStr);
     return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
       Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
       'day',
     );
-  };
+  }, []);
 
-  const totalProjects = projects?.length ?? 0;
+  const totalProjects = useMemo(() => projects?.length ?? 0, [projects]);
 
   return (
     <div className="space-y-8">

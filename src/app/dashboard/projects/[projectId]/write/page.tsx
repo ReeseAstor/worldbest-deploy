@@ -4,17 +4,22 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@ember/ui-components';
 import { Sparkles, ChevronLeft, Plus, PenTool } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useProject } from '@/hooks/use-projects';
 import { useBooks } from '@/hooks/use-books';
 import { useChapters, useCreateChapter } from '@/hooks/use-chapters';
 import { useChapter } from '@/hooks/use-chapters';
 import { useAutosave } from '@/hooks/use-autosave';
 import { useEditorStore } from '@/stores/editor-store';
-import { EmberEditor } from '@/components/editor/ember-editor';
 import { ChapterSidebar } from '@/components/editor/chapter-sidebar';
 import { AIPanel } from '@/components/editor/ai-panel';
 import { LineEditPanel } from '@/components/editor/line-edit-panel';
 import type { ChapterContentUpdate } from '@/lib/api/chapters';
+
+const EmberEditor = dynamic(
+  () => import('@/components/editor/ember-editor').then((m) => ({ default: m.EmberEditor })),
+  { ssr: false, loading: () => <div className="flex-1 flex items-center justify-center"><div className="animate-pulse text-muted-foreground">Loading editor...</div></div> }
+);
 
 export default function WritePage() {
   const params = useParams<{ projectId: string }>();
