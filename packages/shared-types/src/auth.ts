@@ -1,4 +1,5 @@
-// Authentication and Authorization Types
+// User and Authentication Types
+import { SubscriptionPlan } from './billing';
 
 export interface User {
   id: string;
@@ -22,12 +23,12 @@ export interface UserPreferences {
   theme: 'light' | 'dark' | 'auto';
   language: string;
   timezone: string;
-  email_notifications: EmailNotificationSettings;
+  email_notifications: UserEmailNotificationSettings;
   editor_settings: EditorSettings;
   ai_settings: UserAISettings;
 }
 
-export interface EmailNotificationSettings {
+export interface UserEmailNotificationSettings {
   project_updates: boolean;
   collaboration_invites: boolean;
   billing_alerts: boolean;
@@ -99,13 +100,6 @@ export enum UserRole {
   SUPER_ADMIN = 'super_admin'
 }
 
-export enum SubscriptionPlan {
-  STORY_STARTER = 'story_starter',
-  SOLO_AUTHOR = 'solo_author',
-  PRO_CREATOR = 'pro_creator',
-  STUDIO_TEAM = 'studio_team',
-  ENTERPRISE = 'enterprise'
-}
 
 export interface Session {
   id: string;

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@worldbest/ui-components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@worldbest/ui-components';
+import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@worldbest/ui-components';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -35,9 +34,25 @@ import {
   Zap,
   Crown,
   Settings,
-  Camera
+  Camera,
+  Puzzle,
+  Github,
+  GitBranch,
+  GitPullRequest,
+  GitMerge,
+  Cloud,
+  Database,
+  Link as LinkIcon,
+  RefreshCw,
+  Flame,
+  Mic2,
+  BookHeart,
+  PenTool
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
+import { useCurrentProfile, useUpdateProfile } from '@/hooks/queries/use-profile';
+import { useSubscriptionLimits, useUsageStats } from '@/hooks/queries/use-usage';
+import { useToast } from '@/stores/ui-store';
 
 interface UserProfile {
   id: string;
@@ -106,26 +121,58 @@ const plans = [
 export default function SettingsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'billing' | 'notifications' | 'preferences' | 'security'>('profile');
+  const { data: profileData } = useCurrentProfile();
+  const updateProfile = useUpdateProfile();
+  const toastActions = useToast();
+  const [activeTab, setActiveTab] = useState<'integrations' | 'profile' | 'account' | 'billing' | 'notifications' | 'preferences' | 'security' | 'writing'>('integrations');
   const [loading, setLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
+  // Local form state initialized from server data
   const [profile, setProfile] = useState<UserProfile>({
-    id: '1',
-    email: 'user@example.com',
-    username: 'johndoe',
-    displayName: 'John Doe',
-    bio: 'Aspiring novelist with a passion for fantasy and science fiction.',
-    website: 'https://johndoe.com',
-    twitter: '@johndoe',
-    plan: 'solo_author',
-    emailVerified: true,
+    id: '',
+    email: '',
+    username: '',
+    displayName: '',
+    bio: '',
+    website: '',
+    twitter: '',
+    plan: 'story_starter',
+    emailVerified: false,
     twoFactorEnabled: false,
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date(),
     language: 'en-US',
     timezone: 'America/New_York',
     theme: 'system'
   });
+
+  // Sync server data to local state when loaded
+  useEffect(() => {
+    if (profileData) {
+      setProfile(prev => ({
+        ...prev,
+        id: profileData.id,
+        email: profileData.email,
+        displayName: profileData.full_name || '',
+        avatarUrl: profileData.avatar_url || undefined,
+        bio: profileData.bio || '',
+        username: profileData.pen_name || '',
+        plan: mapSubscriptionTier(profileData.subscription_tier),
+        createdAt: new Date(profileData.created_at),
+      }));
+    }
+  }, [profileData]);
+
+  // Map subscription tier to plan
+  const mapSubscriptionTier = (tier: string): UserProfile['plan'] => {
+    switch (tier) {
+      case 'free': return 'story_starter';
+      case 'spark': return 'solo_author';
+      case 'flame': return 'pro_creator';
+      case 'inferno': return 'studio_team';
+      default: return 'story_starter';
+    }
+  };
 
   const [notifications, setNotifications] = useState<NotificationSettings>({
     emailNotifications: true,
@@ -138,13 +185,34 @@ export default function SettingsPage() {
     mobileNotifications: false
   });
 
+  const [githubRepository] = useState('ReeseAstor/worldbest-deploy');
+  const [githubSupabaseDirectory, setGithubSupabaseDirectory] = useState('');
+  const [githubDeployToProduction, setGithubDeployToProduction] = useState(true);
+  const [githubProductionBranch, setGithubProductionBranch] = useState('master');
+  const [githubAutomaticBranching, setGithubAutomaticBranching] = useState(true);
+  const [githubBranchLimit, setGithubBranchLimit] = useState(50);
+  const [githubSupabaseChangesOnly, setGithubSupabaseChangesOnly] = useState(false);
+
+  const [vercelProductionSync, setVercelProductionSync] = useState(true);
+  const [vercelPreviewSync, setVercelPreviewSync] = useState(true);
+  const [vercelDevelopmentSync, setVercelDevelopmentSync] = useState(false);
+  const [vercelEnvPrefix, setVercelEnvPrefix] = useState('NEXT_PUBLIC_');
+  const [steamLevel, setSteamLevel] = useState(3);
+  const [voiceProfileEnabled, setVoiceProfileEnabled] = useState(false);
+  const [deviationThreshold, setDeviationThreshold] = useState(15);
+
   const handleSaveProfile = async () => {
-    setLoading(true);
-    // TODO: API call to save profile
-    setTimeout(() => {
-      setLoading(false);
-      // Show success toast
-    }, 1000);
+    try {
+      await updateProfile.mutateAsync({
+        full_name: profile.displayName,
+        pen_name: profile.username,
+        bio: profile.bio,
+        avatar_url: profile.avatarUrl,
+      });
+      toastActions.success('Profile saved', 'Your profile has been updated successfully.');
+    } catch (error) {
+      toastActions.error('Error', 'Failed to save profile. Please try again.');
+    }
   };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,6 +243,23 @@ export default function SettingsPage() {
     </button>
   );
 
+  const ToggleSwitch = ({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`w-12 h-6 rounded-full transition-colors ${
+        enabled ? 'bg-primary' : 'bg-gray-200'
+      }`}
+      aria-pressed={enabled}
+    >
+      <span
+        className={`block h-5 w-5 rounded-full bg-white transition-transform ${
+          enabled ? 'translate-x-6' : 'translate-x-0.5'
+        }`}
+      />
+    </button>
+  );
+
   return (
     <div className="container max-w-6xl mx-auto py-8">
       {/* Header */}
@@ -190,12 +275,14 @@ export default function SettingsPage() {
         <div className="md:col-span-1">
           <Card>
             <CardContent className="p-4 space-y-1">
+              <TabButton id="integrations" label="Integrations" icon={Puzzle} />
               <TabButton id="profile" label="Profile" icon={User} />
               <TabButton id="account" label="Account" icon={Settings} />
               <TabButton id="billing" label="Billing & Plan" icon={CreditCard} />
               <TabButton id="notifications" label="Notifications" icon={Bell} />
               <TabButton id="preferences" label="Preferences" icon={Palette} />
               <TabButton id="security" label="Security" icon={Shield} />
+              <TabButton id="writing" label="Writing & AI" icon={PenTool} />
             </CardContent>
           </Card>
 
@@ -219,7 +306,284 @@ export default function SettingsPage() {
 
         {/* Main Content */}
         <div className="md:col-span-3 space-y-6">
-          {/* Profile Tab */}
+            {activeTab === 'integrations' && (
+              <>
+                <Card>
+                  <CardHeader className="pb-0">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                        <Github className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl">GitHub Integration</CardTitle>
+                        <CardDescription>
+                          Connect any of your GitHub repositories to a project.
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6 pt-6">
+                    <div className="rounded-lg border p-4 md:flex md:items-center md:justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                          <Github className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{githubRepository}</p>
+                          <p className="text-sm text-muted-foreground">GitHub Repository</p>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" className="mt-4 md:mt-0">
+                        <LinkIcon className="mr-2 h-4 w-4" />
+                        Change the connected repository
+                      </Button>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="github-supabase-directory">Supabase directory</Label>
+                        <Input
+                          id="github-supabase-directory"
+                          placeholder="supabase/"
+                          value={githubSupabaseDirectory}
+                          onChange={(e) => setGithubSupabaseDirectory(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Relative path to your Supabase folder
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="github-production-branch">Production branch name</Label>
+                        <Input
+                          id="github-production-branch"
+                          value={githubProductionBranch}
+                          onChange={(e) => setGithubProductionBranch(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Deploy changes to production on push including PR merges
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+                      <div className="space-y-4 rounded-lg border p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-medium">Deploy to production</p>
+                            <p className="text-sm text-muted-foreground">
+                              Deploy changes to production on push including PR merges.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={githubDeployToProduction}
+                            onToggle={() => setGithubDeployToProduction(!githubDeployToProduction)}
+                          />
+                        </div>
+
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-medium">Automatic branching</p>
+                            <p className="text-sm text-muted-foreground">
+                              Create preview branches for every pull request.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={githubAutomaticBranching}
+                            onToggle={() => setGithubAutomaticBranching(!githubAutomaticBranching)}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="github-branch-limit">Branch limit</Label>
+                          <Input
+                            id="github-branch-limit"
+                            type="number"
+                            min={1}
+                            value={githubBranchLimit}
+                            onChange={(e) => setGithubBranchLimit(Number(e.target.value) || 0)}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Maximum number of preview branches
+                          </p>
+                        </div>
+
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-medium">Supabase changes only</p>
+                            <p className="text-sm text-muted-foreground">
+                              Only create branches when Supabase files change.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={githubSupabaseChangesOnly}
+                            onToggle={() => setGithubSupabaseChangesOnly(!githubSupabaseChangesOnly)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 rounded-lg border border-dashed bg-muted/30 p-4">
+                        <div className="flex items-start gap-3">
+                          <RefreshCw className="h-5 w-5 text-primary" />
+                          <div>
+                            <p className="font-medium">How does the GitHub integration work?</p>
+                            <p className="text-sm text-muted-foreground">
+                              Connecting to GitHub allows you to sync preview branches with a chosen GitHub branch, keep your production branch in sync, and automatically create preview branches for every pull request.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="space-y-3 text-sm text-muted-foreground">
+                          <div className="flex items-start gap-3">
+                            <GitBranch className="mt-0.5 h-4 w-4 text-primary" />
+                            <span>Sync preview branches with a chosen GitHub branch.</span>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <GitMerge className="mt-0.5 h-4 w-4 text-primary" />
+                            <span>Keep your production branch in sync automatically.</span>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <GitPullRequest className="mt-0.5 h-4 w-4 text-primary" />
+                            <span>Automatically create preview branches for every pull request.</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-between">
+                    <Button variant="ghost" className="w-full text-destructive hover:text-destructive md:w-auto">
+                      Disable integration
+                    </Button>
+                    <Button className="w-full md:w-auto">Save changes</Button>
+                  </CardFooter>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-0">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                        <Cloud className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl">Vercel Integration</CardTitle>
+                        <CardDescription>
+                          Supabase will keep your environment variables up to date in each of the projects you assign to a Supabase project. You can also link multiple Vercel projects to the same Supabase project.
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6 pt-6">
+                    <div className="space-y-4 rounded-lg border p-4">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-base font-semibold uppercase">
+                            ra
+                          </div>
+                          <div>
+                            <p className="font-medium">reeseastor&apos;s projects</p>
+                            <p className="text-sm text-muted-foreground">Team • Created 19 days ago</p>
+                            <p className="text-xs text-muted-foreground">Added by info@reeseastor.com</p>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm" className="self-start">
+                          Manage
+                        </Button>
+                      </div>
+                      <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                        <span>1 project connection</span>
+                        <span>Repository connections for Vercel</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-4 rounded-lg border p-4 md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                          <Database className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Supabase</p>
+                          <p className="text-sm text-muted-foreground">88Away</p>
+                          <p className="text-xs text-muted-foreground">Connected 2 hours ago • Added by info@reeseastor.com</p>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" className="self-start">
+                        Manage
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4 rounded-lg border p-4">
+                      <div>
+                        <p className="font-medium">Sync environment variables for selected target environments</p>
+                        <p className="text-sm text-muted-foreground">
+                          Choose which environments receive automatic updates.
+                        </p>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+                          <div>
+                            <p className="font-medium">Production</p>
+                            <p className="text-sm text-muted-foreground">
+                              Sync environment variables for production environment.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={vercelProductionSync}
+                            onToggle={() => setVercelProductionSync(!vercelProductionSync)}
+                          />
+                        </div>
+                        <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+                          <div>
+                            <p className="font-medium">Preview</p>
+                            <p className="text-sm text-muted-foreground">
+                              Sync environment variables for preview environment.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={vercelPreviewSync}
+                            onToggle={() => setVercelPreviewSync(!vercelPreviewSync)}
+                          />
+                        </div>
+                        <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+                          <div>
+                            <p className="font-medium">Development</p>
+                            <p className="text-sm text-muted-foreground">
+                              Sync environment variables for development environment.
+                            </p>
+                          </div>
+                          <ToggleSwitch
+                            enabled={vercelDevelopmentSync}
+                            onToggle={() => setVercelDevelopmentSync(!vercelDevelopmentSync)}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="vercel-prefix">Customize public environment variable prefix</Label>
+                        <Input
+                          id="vercel-prefix"
+                          value={vercelEnvPrefix}
+                          onChange={(e) => setVercelEnvPrefix(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          e.g. NEXT_PUBLIC_, VITE_PUBLIC_, PUBLIC_, etc.
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button variant="outline" className="w-full md:w-auto">
+                      Add new project connection
+                    </Button>
+                  </CardContent>
+                  <CardFooter className="flex flex-col gap-3 md:flex-row md:justify-end">
+                    <Button variant="outline" className="w-full md:w-auto">
+                      Cancel
+                    </Button>
+                    <Button className="w-full md:w-auto">
+                      Save
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </>
+            )}
+
+            {/* Profile Tab */}
           {activeTab === 'profile' && (
             <>
               <Card>
@@ -320,8 +684,8 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <Button onClick={handleSaveProfile} disabled={loading}>
-                    {loading ? 'Saving...' : 'Save Changes'}
+                  <Button onClick={handleSaveProfile} disabled={updateProfile.isPending}>
+                    {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </CardContent>
               </Card>
@@ -689,6 +1053,191 @@ export default function SettingsPage() {
             </Card>
           )}
 
+          {/* Writing & AI Tab (Ember-specific) */}
+          {activeTab === 'writing' && (
+            <>
+              {/* Steam Level Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Flame className="h-5 w-5 text-rose-500" />
+                    Steam Level
+                  </CardTitle>
+                  <CardDescription>
+                    Set your default heat level for AI-generated romantic content
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Default Steam Level</span>
+                      <span className="text-sm text-muted-foreground">
+                        {steamLevel === 1 && 'Closed Door'}
+                        {steamLevel === 2 && 'Warm'}
+                        {steamLevel === 3 && 'Steamy'}
+                        {steamLevel === 4 && 'Spicy'}
+                        {steamLevel === 5 && 'Scorching'}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={5}
+                      value={steamLevel}
+                      onChange={(e) => setSteamLevel(parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>1 - Closed Door</span>
+                      <span>2 - Warm</span>
+                      <span>3 - Steamy</span>
+                      <span>4 - Spicy</span>
+                      <span>5 - Scorching</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-5 gap-2">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <button
+                        key={level}
+                        onClick={() => setSteamLevel(level)}
+                        className={`
+                          p-3 rounded-lg border-2 text-center transition-all
+                          ${steamLevel === level
+                            ? 'border-rose-500 bg-rose-50 dark:bg-rose-950'
+                            : 'border-border hover:border-rose-300'
+                          }
+                        `}
+                      >
+                        <Flame className={`h-5 w-5 mx-auto mb-1 ${
+                          level >= 4 ? 'text-red-500' : level >= 2 ? 'text-rose-400' : 'text-slate-400'
+                        }`} />
+                        <span className="text-xs">{level}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    This sets the default for new projects. You can override this per-project.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Voice Profile Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mic2 className="h-5 w-5 text-violet-500" />
+                    Voice Fingerprinting
+                  </CardTitle>
+                  <CardDescription>
+                    Configure how AI matches your unique writing style
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Enable Voice Matching</p>
+                      <p className="text-sm text-muted-foreground">
+                        AI will try to match your writing style
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setVoiceProfileEnabled(!voiceProfileEnabled)}
+                      className={`w-12 h-6 rounded-full transition-colors ${
+                        voiceProfileEnabled ? 'bg-violet-500' : 'bg-gray-200'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                        voiceProfileEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {voiceProfileEnabled && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium">Deviation Threshold</label>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          How much can AI deviate from your voice before being flagged?
+                        </p>
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="range"
+                            min={5}
+                            max={30}
+                            value={deviationThreshold}
+                            onChange={(e) => setDeviationThreshold(parseInt(e.target.value))}
+                            className="flex-1"
+                          />
+                          <span className="text-lg font-medium w-12">{deviationThreshold}%</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                          <span>Strict matching</span>
+                          <span>More creative freedom</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Genre Preferences */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookHeart className="h-5 w-5 text-rose-500" />
+                    Genre Preferences
+                  </CardTitle>
+                  <CardDescription>
+                    Configure AI knowledge of romantasy conventions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Preferred Beat Sheet</label>
+                    <select className="w-full px-3 py-2 border rounded-md bg-background">
+                      <option value="romancing-the-beat">Romancing the Beat</option>
+                      <option value="save-the-cat-romance">Save the Cat! Romance</option>
+                      <option value="dark-romance-arc">Dark Romance Arc</option>
+                      <option value="epic-fantasy-romance">Epic Fantasy Romance</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Default POV Depth</label>
+                    <select className="w-full px-3 py-2 border rounded-md bg-background">
+                      <option value="shallow">Shallow (External observations)</option>
+                      <option value="medium">Medium (Some interiority)</option>
+                      <option value="deep">Deep (Full internal access)</option>
+                      <option value="deep-omniscient">Deep Omniscient (Multiple POVs)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Favorite Tropes</label>
+                    <p className="text-xs text-muted-foreground">
+                      AI will prioritize these in suggestions
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {['Enemies to Lovers', 'Forced Proximity', 'Fated Mates', 'Slow Burn', 'Found Family', 'Grumpy/Sunshine'].map((trope) => (
+                        <button
+                          key={trope}
+                          className="px-3 py-1 text-xs rounded-full border hover:bg-rose-50 hover:border-rose-300 transition-colors"
+                        >
+                          {trope}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Button className="bg-rose-500 hover:bg-rose-600">Save Writing Preferences</Button>
+            </>
+          )}
+
           {/* Security Tab */}
           {activeTab === 'security' && (
             <>
@@ -816,7 +1365,7 @@ export default function SettingsPage() {
                     <div>
                       <p className="font-medium text-sm">Show Activity Status</p>
                       <p className="text-xs text-muted-foreground">
-                        Let others see when you're online
+                        Let others see when you&apos;re online
                       </p>
                     </div>
                     <button className="w-12 h-6 rounded-full bg-gray-200">

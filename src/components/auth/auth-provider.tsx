@@ -1,79 +1,89 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { User } from '@worldbest/shared-types';
-import { authApi } from '@/lib/api/auth';
-import { useToast } from '@worldbest/ui-components';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@ember/ui-components';
+
+interface AuthUser {
+  id: string;
+  email: string;
+  display_name: string;
+  avatar_url?: string;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, displayName: string) => Promise<void>;
+  signInWithMagicLink: (email: string) => Promise<void>;
   logout: () => Promise<void>;
-  refreshToken: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function mapSupabaseUser(supabaseUser: SupabaseUser): AuthUser {
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email || '',
+    display_name: supabaseUser.user_metadata?.display_name || supabaseUser.email?.split('@')[0] || 'User',
+    avatar_url: supabaseUser.user_metadata?.avatar_url,
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
+  const supabase = createClient();
+  const initializedRef = useRef(false);
 
-  // Initialize auth state
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const token = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('auth-token='))
-          ?.split('=')[1];
-
-        if (token) {
-          const userData = await authApi.me();
-          setUser(userData);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(mapSupabaseUser(session.user));
         }
       } catch (error) {
-        // Token is invalid, remove it
-        document.cookie = 'auth-token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
         console.error('Auth initialization error:', error);
       } finally {
         setLoading(false);
+        initializedRef.current = true;
       }
     };
 
     initAuth();
-  }, []);
+  }, [supabase]);
 
-  // Auto-refresh token
   useEffect(() => {
-    if (!user) return;
-
-    const interval = setInterval(async () => {
-      try {
-        await refreshToken();
-      } catch (error) {
-        console.error('Token refresh failed:', error);
-        await logout();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser(mapSupabaseUser(session.user));
+          if (pathname === '/' || pathname?.startsWith('/auth')) {
+            router.push('/dashboard');
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          router.push('/');
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          setUser(mapSupabaseUser(session.user));
+        }
       }
-    }, 15 * 60 * 1000); // Refresh every 15 minutes
+    );
 
-    return () => clearInterval(interval);
-  }, [user]);
+    return () => subscription.unsubscribe();
+  }, [supabase, router, pathname]);
 
   const login = async (email: string, password: string) => {
     try {
-      const { user: userData, token } = await authApi.login(email, password);
-      
-      // Set cookie
-      document.cookie = `auth-token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`;
-      
-      setUser(userData);
-      router.push('/dashboard');
-      
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
       toast({
         title: 'Welcome back!',
         description: 'You have been successfully logged in.',
@@ -90,17 +100,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (email: string, password: string, displayName: string) => {
     try {
-      const { user: userData, token } = await authApi.signup(email, password, displayName);
-      
-      // Set cookie
-      document.cookie = `auth-token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`;
-      
-      setUser(userData);
-      router.push('/dashboard');
-      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { display_name: displayName } },
+      });
+      if (error) throw error;
       toast({
-        title: 'Welcome to WorldBest!',
-        description: 'Your account has been created successfully.',
+        title: 'Welcome to Ember!',
+        description: 'Your account has been created. Check your email to verify.',
       });
     } catch (error: any) {
       toast({
@@ -112,45 +120,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = async () => {
+  const signInWithMagicLink = async (email: string) => {
     try {
-      await authApi.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear cookie
-      document.cookie = 'auth-token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
-      setUser(null);
-      router.push('/');
-      
-      toast({
-        title: 'Logged out',
-        description: 'You have been successfully logged out.',
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
-    }
-  };
-
-  const refreshToken = async () => {
-    try {
-      const { token } = await authApi.refreshToken();
-      document.cookie = `auth-token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`;
-    } catch (error) {
-      console.error('Token refresh error:', error);
+      if (error) throw error;
+      toast({
+        title: 'Check your email!',
+        description: 'We sent you a magic link to sign in.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Failed to send magic link',
+        description: error.message || 'An error occurred.',
+        variant: 'destructive',
+      });
       throw error;
     }
   };
 
-  const value: AuthContextType = {
-    user,
-    loading,
-    login,
-    signup,
-    logout,
-    refreshToken,
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: 'Logged out',
+        description: 'You have been successfully logged out.',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, loading, login, signup, signInWithMagicLink, logout }}>
       {children}
     </AuthContext.Provider>
   );

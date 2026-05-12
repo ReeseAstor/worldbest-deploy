@@ -1,1 +1,1 @@
-export { Toaster } from '@worldbest/ui-components';
+export { Toaster } from '@ember/ui-components';

@@ -1,10 +1,36 @@
+const { withSentryConfig } = require('@sentry/nextjs');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['@worldbest/database'],
+  // Enable standalone output for Docker/production deployments
+  output: 'standalone',
+  
+  // Enable React strict mode for better development experience
+  reactStrictMode: true,
+  
+  // PoweredByHeader security - remove X-Powered-By header
+  poweredByHeader: false,
+  
+  // Compression enabled by default
+  compress: true,
+
+  // SWC compiler optimizations
+  compiler: {
+    // Remove console.log in production
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
-  transpilePackages: ['@worldbest/shared-types', '@worldbest/ui-components'],
+  
+  // External packages for server components (moved from experimental)
+  serverExternalPackages: ['@ember/database'],
+  
+  transpilePackages: ['@ember/shared-types', '@ember/ui-components'],
+  
+  // Optimized image configuration
   images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: 'https',
@@ -21,35 +47,72 @@ const nextConfig = {
       },
     ],
   },
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
-    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws',
-  },
-  async redirects() {
+  
+  // Security headers
+  async headers() {
     return [
       {
-        source: '/',
-        destination: '/dashboard',
-        permanent: false,
-        has: [
+        source: '/:path*',
+        headers: [
           {
-            type: 'cookie',
-            key: 'auth-token',
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()'
           },
         ],
       },
     ];
   },
-  async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${apiUrl}/:path*`,
-      },
-    ];
+  
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws',
   },
 };
 
-module.exports = nextConfig;
+// Sentry configuration options
+const sentryWebpackPluginOptions = {
+  // Suppresses source map uploading logs during build
+  silent: true,
+  org: "88away",
+  project: "ember-web",
+};
 
+const sentryOptions = {
+  // Upload larger source maps for better debugging
+  widenClientFileUpload: true,
+  // Hide source maps from client bundles
+  hideSourceMaps: true,
+  // Disable Sentry logger to reduce bundle size
+  disableLogger: true,
+  // Disable automatic instrumentation to avoid build issues when DSN not set
+  automaticVercelMonitors: false,
+};
+
+// Only wrap with Sentry if DSN is configured
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions, sentryOptions)
+  : nextConfig;

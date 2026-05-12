@@ -1,65 +1,66 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import * as Sentry from "@sentry/nextjs";
+import Link from "next/link";
+import { useEffect } from "react";
 
-interface ErrorPageProps {
+export default function Error({
+  error,
+  reset,
+}: {
   error: Error & { digest?: string };
   reset: () => void;
-}
-
-export default function ErrorPage({ error, reset }: ErrorPageProps) {
+}) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error('Application error:', error);
+    // Report the error to Sentry
+    Sentry.captureException(error);
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-            <AlertTriangle className="h-6 w-6 text-destructive" />
-          </div>
-          <CardTitle>Something went wrong!</CardTitle>
-          <CardDescription>
-            We apologize for the inconvenience. An unexpected error has occurred.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {process.env.NODE_ENV === 'development' && (
-            <div className="rounded-md bg-muted p-3">
-              <p className="text-sm font-mono text-muted-foreground">
-                {error.message}
-              </p>
-              {error.digest && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Error ID: {error.digest}
-                </p>
-              )}
-            </div>
-          )}
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button
-              onClick={reset}
-              className="flex-1"
-              variant="default"
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Try again
-            </Button>
-            <Button
-              onClick={() => window.location.href = '/'}
-              variant="outline"
-              className="flex-1"
-            >
-              Go home
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center px-4">
+      <div className="text-center max-w-md">
+        <div className="mb-6">
+          <svg
+            className="mx-auto h-16 w-16 text-rose-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+          Something went wrong
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-8">
+          We&apos;ve encountered an unexpected error. Don&apos;t worry, our team has been 
+          notified and is working on it.
+        </p>
+        <div className="space-y-3">
+          <button
+            onClick={() => reset()}
+            className="w-full inline-flex items-center justify-center px-6 py-3 rounded-lg bg-rose-600 text-white font-medium hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 transition-colors"
+          >
+            Try Again
+          </button>
+          <Link
+            href="/dashboard"
+            className="w-full inline-flex items-center justify-center px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+          >
+            Back to Dashboard
+          </Link>
+        </div>
+        {error.digest && (
+          <p className="mt-6 text-xs text-gray-400">
+            Error ID: {error.digest}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

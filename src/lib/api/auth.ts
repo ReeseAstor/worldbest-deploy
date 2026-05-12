@@ -1,4 +1,4 @@
-import { User } from '@worldbest/shared-types';
+import { User } from '@ember/shared-types';
 import { apiClient } from './client';
 
 export interface LoginRequest {

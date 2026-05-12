@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@worldbest/ui-components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@worldbest/ui-components';
+import { Button } from '@ember/ui-components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
 import {
   TrendingUp,
   TrendingDown,

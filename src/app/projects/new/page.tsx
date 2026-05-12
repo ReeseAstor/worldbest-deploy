@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@worldbest/ui-components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@worldbest/ui-components';
+import { Button } from '@ember/ui-components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ember/ui-components';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -196,7 +196,7 @@ export default function NewProjectPage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, synopsis: e.target.value }))}
                 />
                 <p className="text-sm text-muted-foreground">
-                  A brief overview of your story's plot, themes, and main characters
+                  A brief overview of your story&apos;s plot, themes, and main characters
                 </p>
               </div>
 

@@ -2,64 +2,74 @@ import type { Metadata } from 'next';
 import { Inter, Merriweather } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
+import { GoogleAnalytics } from '@/components/analytics/google-analytics';
+import { CookieConsent } from '@/components/gdpr';
 import '@/styles/globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-const merriweather = Merriweather({ 
-  weight: ['400', '700'], 
-  subsets: ['latin'], 
-  variable: '--font-serif' 
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+const merriweather = Merriweather({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+  variable: '--font-serif',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | WorldBest',
-    default: 'WorldBest - AI-Powered Writing Platform',
+    template: '%s | Ember - AI Writing Platform',
+    default: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
   },
-  description: 'A production-ready commercial platform for writers featuring comprehensive story bibles, AI-assisted content generation, collaboration tools, and subscription billing.',
+  description: 'AI-powered writing platform for romance & fantasy authors. Steam calibration, voice fingerprinting, series bible & KDP export.',
   keywords: [
-    'writing',
-    'storytelling',
-    'AI',
-    'worldbuilding',
-    'characters',
-    'story bible',
-    'writing tools',
-    'creative writing',
-    'fiction writing',
-    'collaboration',
+    'romantasy',
+    'romance writing',
+    'AI ghostwriting',
+    'steamy romance',
+    'dark romance',
+    'paranormal romance',
+    'steam calibration',
+    'series bible',
+    'KDP publishing',
+    'book writing software',
+    'romance author tools',
+    'indie author tools',
+    'AI writing assistant',
+    'fiction writing software',
   ],
-  authors: [{ name: 'WorldBest Team' }],
-  creator: 'WorldBest',
-  publisher: 'WorldBest',
+  authors: [{ name: '88Away LLC' }],
+  creator: 'Ember',
+  publisher: '88Away LLC',
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://88away.com'),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: '/',
-    title: 'WorldBest - AI-Powered Writing Platform',
-    description: 'A production-ready commercial platform for writers featuring comprehensive story bibles, AI-assisted content generation, collaboration tools, and subscription billing.',
-    siteName: 'WorldBest',
+    title: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
+    description: 'AI-powered writing platform for romance & fantasy authors. Steam calibration, voice fingerprinting, series bible & KDP export.',
+    siteName: 'Ember',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'WorldBest - AI-Powered Writing Platform',
+        alt: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'WorldBest - AI-Powered Writing Platform',
-    description: 'A production-ready commercial platform for writers featuring comprehensive story bibles, AI-assisted content generation, collaboration tools, and subscription billing.',
+    title: 'Ember - AI-Powered Romantasy Ghostwriting Platform',
+    description: 'AI-powered writing platform for romance & fantasy authors. Steam calibration, voice fingerprinting, series bible & KDP export.',
     images: ['/og-image.png'],
-    creator: '@worldbest',
+    creator: '@88away',
   },
   robots: {
     index: true,
@@ -87,14 +97,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body 
         className={`${inter.variable} ${merriweather.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
+        <GoogleAnalytics />
         <Providers>
           {children}
           <Toaster />
+          <CookieConsent />
         </Providers>
       </body>
     </html>

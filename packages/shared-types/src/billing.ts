@@ -106,10 +106,9 @@ export enum SubscriptionStatus {
 }
 
 export enum SubscriptionPlan {
-  STORY_STARTER = 'story_starter',
-  SOLO_AUTHOR = 'solo_author',
-  PRO_CREATOR = 'pro_creator',
-  STUDIO_TEAM = 'studio_team',
+  STARTER = 'starter',
+  PRO = 'pro',
+  STUDIO = 'studio',
   ENTERPRISE = 'enterprise'
 }
 

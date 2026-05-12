@@ -1,4 +1,7 @@
-// AI and Generation Types
+// AI and Generation Types for Ember - Romantasy AI Orchestration
+
+import { SteamLevelValue, SteamPromptModifiers } from './steam';
+import { VoicePromptConstraints } from './voice';
 
 export interface AIGenerationRequest {
   intent: AIIntent;
@@ -8,6 +11,9 @@ export interface AIGenerationRequest {
   params: AIGenerationParams;
   safety_overrides?: SafetyOverrides;
   idempotency_key?: string;
+  steamLevel?: SteamLevelValue;
+  voiceProfileId?: string;
+  contextConfig?: ContextWindowConfig;
 }
 
 export interface ContextReference {
@@ -27,11 +33,15 @@ export enum ContextType {
   CULTURE = 'culture',
   TIMELINE = 'timeline',
   STYLE_PROFILE = 'style_profile',
-  TEXT_VERSION = 'text_version'
+  TEXT_VERSION = 'text_version',
+  SERIES_BIBLE = 'series_bible',
+  BEAT_SHEET = 'beat_sheet',
+  VOICE_PROFILE = 'voice_profile',
+  RELATIONSHIP = 'relationship',
+  CONTINUITY_RULE = 'continuity_rule'
 }
 
 export enum AIIntent {
-  // Muse intents
   BRAINSTORM_IDEAS = 'brainstorm_ideas',
   GENERATE_SCENE = 'generate_scene',
   CONTINUE_SCENE = 'continue_scene',
@@ -42,8 +52,11 @@ export enum AIIntent {
   DEVELOP_CHARACTER = 'develop_character',
   EXPAND_WORLDBUILDING = 'expand_worldbuilding',
   SUGGEST_PLOT = 'suggest_plot',
-  
-  // Editor intents
+  GENERATE_STEAM_SCENE = 'generate_steam_scene',
+  INCREASE_HEAT = 'increase_heat',
+  DECREASE_HEAT = 'decrease_heat',
+  WRITE_TENSION = 'write_tension',
+  WRITE_BANTER = 'write_banter',
   REVISE_TEXT = 'revise_text',
   IMPROVE_DIALOGUE = 'improve_dialogue',
   LINE_EDIT = 'line_edit',
@@ -52,20 +65,26 @@ export enum AIIntent {
   CONTINUITY_CHECK = 'continuity_check',
   PACING_ADJUST = 'pacing_adjust',
   ANALYZE_TEXT = 'analyze_text',
-  
-  // Coach intents
+  VOICE_MATCH = 'voice_match',
+  STEAM_CALIBRATE = 'steam_calibrate',
+  TROPE_ENHANCE = 'trope_enhance',
   PLOT_OUTLINE = 'plot_outline',
   CHARACTER_ARC = 'character_arc',
   BEAT_SHEET = 'beat_sheet',
   CONFLICT_ANALYSIS = 'conflict_analysis',
   THEME_EXPLORATION = 'theme_exploration',
-  
-  // Hybrid intents
+  ROMANCE_ARC_ANALYSIS = 'romance_arc_analysis',
+  TENSION_PACING = 'tension_pacing',
+  TROPE_EXECUTION = 'trope_execution',
+  DEVELOPMENTAL_EDIT = 'developmental_edit',
   SUMMARIZE = 'summarize',
   ANALYZE = 'analyze',
   SUGGEST_NEXT = 'suggest_next',
   WORLDBUILD = 'worldbuild',
-  FACT_CHECK = 'fact_check'
+  FACT_CHECK = 'fact_check',
+  GENERATE_BLURB = 'generate_blurb',
+  GENERATE_KEYWORDS = 'generate_keywords',
+  GENERATE_TAGLINE = 'generate_tagline'
 }
 
 export enum AIPersona {
@@ -142,10 +161,7 @@ export interface SafetyFlag {
   type: SafetyFlagType;
   severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
-  location?: {
-    start: number;
-    end: number;
-  };
+  location?: { start: number; end: number };
   suggested_action?: string;
 }
 
@@ -188,12 +204,7 @@ export interface PromptVariable {
   required: boolean;
   default_value?: any;
   description?: string;
-  validation?: {
-    min?: number;
-    max?: number;
-    pattern?: string;
-    enum?: any[];
-  };
+  validation?: { min?: number; max?: number; pattern?: string; enum?: any[] };
 }
 
 export interface PromptExample {
@@ -381,3 +392,188 @@ export interface AICache {
   expires_at: Date;
   last_accessed: Date;
 }
+
+// Context Window Management
+export interface ContextWindowConfig {
+  immediateContextTokens: number;
+  retrievedContextTokens: number;
+  globalContextTokens: number;
+  includeChapterSummaries: boolean;
+  includeCharacterSheets: boolean;
+  maxCharactersInContext: number;
+}
+
+export interface AssembledContext {
+  immediate: ImmediateContext;
+  retrieved: RetrievedContext;
+  global: GlobalContext;
+  estimatedTokens: number;
+  hash: string;
+}
+
+export interface ImmediateContext {
+  currentChapter: string;
+  precedingText: string;
+  sceneMetadata: {
+    pov: string;
+    location: string;
+    characters: string[];
+    mood?: string;
+    heatLevel?: number;
+  };
+  tokens: number;
+}
+
+export interface RetrievedContext {
+  characters: RetrievedCharacter[];
+  locations: RetrievedLocation[];
+  relationships: RetrievedRelationship[];
+  continuityRules: RetrievedContinuityRule[];
+  timelineEvents: RetrievedTimelineEvent[];
+  tokens: number;
+}
+
+export interface RetrievedCharacter {
+  id: string;
+  name: string;
+  relevantFields: string;
+  similarityScore: number;
+}
+
+export interface RetrievedLocation {
+  id: string;
+  name: string;
+  description: string;
+  similarityScore: number;
+}
+
+export interface RetrievedRelationship {
+  character1: string;
+  character2: string;
+  type: string;
+  currentStage: string;
+  dynamics: string;
+  similarityScore: number;
+}
+
+export interface RetrievedContinuityRule {
+  id: string;
+  rule: string;
+  affectedCharacters: string[];
+  priority: 'must' | 'should' | 'may';
+}
+
+export interface RetrievedTimelineEvent {
+  id: string;
+  date: string;
+  description: string;
+  relevance: number;
+}
+
+export interface GlobalContext {
+  manuscriptSummary: string;
+  storySoFar: string;
+  romanceArcStatus: {
+    currentStage: string;
+    tensionLevel: number;
+    lastMajorBeat: string;
+  };
+  tokens: number;
+}
+
+// Model Routing
+export type AITaskType = 
+  | 'creative-drafting'
+  | 'steam-scene'
+  | 'line-editing'
+  | 'continuity-check'
+  | 'developmental-edit'
+  | 'blurb-generation'
+  | 'voice-analysis'
+  | 'summarization';
+
+export interface ModelRoutingDecision {
+  taskType: AITaskType;
+  selectedModel: string;
+  provider: AIProvider;
+  tier: 'draft' | 'polish' | 'premium';
+  reasoning: string;
+  estimatedCost: number;
+  estimatedLatency: number;
+}
+
+export interface ModelRoutingConfig {
+  taskModelPreferences: Record<AITaskType, string[]>;
+  costThreshold: number;
+  allowFallback: boolean;
+  fallbackModel: string;
+}
+
+// Prompt Assembly
+export interface AssembledPrompt {
+  systemPrompt: string;
+  userPrompt: string;
+  steamModifiers?: SteamPromptModifiers;
+  voiceConstraints?: VoicePromptConstraints;
+  estimatedTokens: number;
+}
+
+export interface PromptAssemblyOptions {
+  steamLevel: SteamLevelValue;
+  voiceProfileId?: string;
+  beatRef?: string;
+  tropeRefs?: string[];
+  customInstructions?: string;
+}
+
+// Extended Ember Response
+export interface EmberGenerationResponse extends AIGenerationResponse {
+  detectedSteamLevel?: SteamLevelValue;
+  voiceDeviationScore?: number;
+  continuityWarnings?: ContinuityWarning[];
+  tropeNotes?: TropeExecutionNote[];
+}
+
+export interface ContinuityWarning {
+  type: 'character' | 'timeline' | 'world' | 'relationship';
+  description: string;
+  severity: 'info' | 'warning' | 'error';
+  suggestion?: string;
+}
+
+export interface TropeExecutionNote {
+  tropeId: string;
+  executionQuality: 'weak' | 'moderate' | 'strong';
+  suggestion?: string;
+}
+
+// Slash Commands
+export enum SlashCommand {
+  DRAFT = 'draft',
+  SCENE = 'scene',
+  DIALOGUE = 'dialogue',
+  STEAM = 'steam',
+  DESCRIBE = 'describe',
+  CONTINUE = 'continue',
+  BRAINSTORM = 'brainstorm'
+}
+
+export const SLASH_COMMAND_LABELS: Record<SlashCommand, string> = {
+  [SlashCommand.DRAFT]: 'Draft',
+  [SlashCommand.SCENE]: 'Write Scene',
+  [SlashCommand.DIALOGUE]: 'Generate Dialogue',
+  [SlashCommand.STEAM]: 'Steam Scene',
+  [SlashCommand.DESCRIBE]: 'Describe Setting',
+  [SlashCommand.CONTINUE]: 'Continue Writing',
+  [SlashCommand.BRAINSTORM]: 'Brainstorm Ideas',
+};
+
+export const SLASH_COMMAND_DESCRIPTIONS: Record<SlashCommand, string> = {
+  [SlashCommand.DRAFT]: 'Generate the next passage of prose',
+  [SlashCommand.SCENE]: 'Write a full scene from a beat description',
+  [SlashCommand.DIALOGUE]: 'Generate dialogue between characters',
+  [SlashCommand.STEAM]: 'Generate an intimate scene at the current heat level',
+  [SlashCommand.DESCRIBE]: 'Expand a setting or character description with sensory detail',
+  [SlashCommand.CONTINUE]: 'Continue writing from the current cursor position',
+  [SlashCommand.BRAINSTORM]: 'Brainstorm plot directions and ideas',
+};

@@ -6,6 +6,7 @@ const config: Config = {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './packages/ui-components/src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     container: {
@@ -49,6 +50,49 @@ const config: Config = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+        },
+        // Ember-specific colors
+        ember: {
+          50: '#fef7f0',
+          100: '#fdebd9',
+          200: '#fbd5b2',
+          300: '#f7b481',
+          400: '#f28b4e',
+          500: '#ee6b27',
+          600: '#df4f1c',
+          700: '#b93c19',
+          800: '#94311c',
+          900: '#792b1a',
+          950: '#41130b',
+        },
+        rose: {
+          50: '#fff1f2',
+          100: '#ffe4e6',
+          200: '#fecdd3',
+          300: '#fda4af',
+          400: '#fb7185',
+          500: '#f43f5e',
+          600: '#e11d48',
+          700: '#be123c',
+          800: '#9f1239',
+          900: '#881337',
+          950: '#4c0519',
+        },
+        // Steam level colors
+        steam: {
+          1: '#94a3b8', // Closed Door - slate
+          2: '#f472b6', // Warm - pink
+          3: '#fb7185', // Steamy - rose
+          4: '#ef4444', // Spicy - red
+          5: '#dc2626', // Scorching - deep red
+        },
+        // Heat level colors (using CSS variables)
+        heat: {
+          1: 'hsl(var(--heat-1))',
+          2: 'hsl(var(--heat-2))',
+          3: 'hsl(var(--heat-3))',
+          4: 'hsl(var(--heat-4))',
+          5: 'hsl(var(--heat-5))',
         },
       },
       borderRadius: {

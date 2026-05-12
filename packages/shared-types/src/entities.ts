@@ -1,3 +1,8 @@
+import type { Currency } from './enums';
+import type { AIPersona, AIGenerationParams } from './ai';
+import type { SteamSettings, SteamLevelValue, SceneSteamOverride } from './steam';
+import type { TropeSelection } from './beat-sheets';
+
 // Core Entity Types for WorldBest Platform
 
 export interface BaseEntity {
@@ -10,11 +15,21 @@ export interface Project extends BaseEntity {
   owner_id: string;
   title: string;
   synopsis?: string;
-  genre: string;
+  genre: RomantasySubgenre;
   style_profile_id?: string;
   settings: ProjectSettings;
   collaborators: ProjectCollaborator[];
   metadata: Record<string, any>;
+  /** Steam calibration settings */
+  steamSettings: SteamSettings;
+  /** Author voice profile reference */
+  voiceProfileId?: string;
+  /** Beat sheet reference */
+  beatSheetId?: string;
+  /** Selected tropes for this project */
+  tropeSelections?: TropeSelection[];
+  /** Series information if part of a series */
+  seriesInfo?: SeriesInfo;
 }
 
 export interface ProjectSettings {
@@ -23,6 +38,8 @@ export interface ProjectSettings {
   target_audience?: string;
   content_rating: ContentRating;
   ai_preferences: AIPreferences;
+  steam_calibration: SteamCalibration;
+  trope_stack: string[];
 }
 
 export interface AIPreferences {
@@ -31,6 +48,29 @@ export interface AIPreferences {
   temperature_draft: number;
   temperature_polish: number;
   max_tokens_per_generation: number;
+  /** Default steam level for AI generations */
+  defaultSteamLevel: SteamLevelValue;
+  /** Voice matching strictness (0-1) */
+  voiceMatchingStrictness: number;
+}
+
+/** Romantasy subgenre classification */
+export type RomantasySubgenre = 
+  | 'romantasy'
+  | 'paranormal-romance'
+  | 'dark-romance'
+  | 'contemporary-romance'
+  | 'historical-romance'
+  | 'romantic-suspense'
+  | 'fantasy-romance'
+  | 'sci-fi-romance';
+
+/** Series information */
+export interface SeriesInfo {
+  seriesId: string;
+  seriesName: string;
+  bookNumber: number;
+  totalPlannedBooks?: number;
 }
 
 export interface ProjectCollaborator {
@@ -56,8 +96,12 @@ export interface Chapter extends BaseEntity {
   title: string;
   summary?: string;
   target_word_count?: number;
+  word_count?: number;
   status: ChapterStatus;
   scenes: Scene[];
+  content_json?: any; // Tiptap ProseMirror JSON
+  content_text?: string; // Plain text derived from content_json
+  pov_character_id?: string;
 }
 
 export interface Scene extends BaseEntity {
@@ -73,6 +117,12 @@ export interface Scene extends BaseEntity {
   mood?: string;
   conflict?: string;
   resolution?: string;
+  /** Scene-specific heat level override */
+  steamOverride?: SceneSteamOverride;
+  /** Beat reference if mapped to beat sheet */
+  beatRef?: string;
+  /** Tropes being executed in this scene */
+  tropeRefs?: string[];
 }
 
 export interface Character extends BaseEntity {
@@ -91,8 +141,51 @@ export interface Character extends BaseEntity {
   backstory?: string;
   relationships: Relationship[];
   arc?: CharacterArc;
-  voice_profile?: VoiceProfile;
+  voice_profile?: CharacterVoiceProfile;
   images?: string[];
+  /** Character role in romance */
+  romanceRole?: RomanceRole;
+  /** Speech patterns for dialogue generation */
+  speechPatterns?: SpeechPatterns;
+  /** POV voice notes for when this character is the narrator */
+  povVoiceNotes?: string;
+  /** Romance-specific attributes */
+  romanceAttributes?: RomanceAttributes;
+}
+
+/** Character role in the romance */
+export type RomanceRole = 'FMC' | 'MMC' | 'love-interest' | 'rival' | 'best-friend' | 'antagonist' | 'supporting';
+
+/** Speech patterns for dialogue consistency */
+export interface SpeechPatterns {
+  /** Common phrases or verbal tics */
+  catchphrases: string[];
+  /** How they express emotion */
+  emotionalExpressions: Record<string, string[]>;
+  /** Formality level in speech */
+  formality: 'casual' | 'neutral' | 'formal';
+  /** Dialect or accent notes */
+  dialectNotes?: string;
+  /** Common curse words or exclamations */
+  exclamations?: string[];
+}
+
+/** Romance-specific character attributes */
+export interface RomanceAttributes {
+  /** Love language */
+  loveLanguage?: 'words' | 'acts' | 'gifts' | 'time' | 'touch';
+  /** Attachment style */
+  attachmentStyle?: 'secure' | 'anxious' | 'avoidant' | 'disorganized';
+  /** Past relationship baggage */
+  relationshipBaggage?: string[];
+  /** What they need in a partner */
+  partnerNeeds?: string[];
+  /** Dealbreakers in relationships */
+  dealbreakers?: string[];
+  /** How they show affection */
+  affectionStyle?: string;
+  /** Intimacy comfort level notes */
+  intimacyNotes?: string;
 }
 
 export interface AppearanceDetails {
@@ -129,7 +222,36 @@ export interface Relationship {
   dynamics?: string;
   history?: string;
   tension_points?: string[];
+  /** Romance-specific: relationship evolution per book */
+  evolution?: RelationshipEvolution[];
+  /** Power dynamic in the relationship */
+  powerDynamic?: 'equal' | 'dominant' | 'submissive' | 'shifting';
 }
+
+/** Tracks how a relationship evolves across the story/series */
+export interface RelationshipEvolution {
+  bookNumber: number;
+  chapterRange?: { start: number; end: number };
+  stage: RelationshipStage;
+  keyMoments: string[];
+  emotionalState: string;
+}
+
+/** Stages of romantic relationship development */
+export type RelationshipStage = 
+  | 'strangers'
+  | 'enemies'
+  | 'acquaintances'
+  | 'tension'
+  | 'attraction'
+  | 'denial'
+  | 'first-kiss'
+  | 'exploration'
+  | 'commitment'
+  | 'conflict'
+  | 'separation'
+  | 'reconciliation'
+  | 'hea';
 
 export interface CharacterArc {
   starting_point: string;
@@ -139,7 +261,7 @@ export interface CharacterArc {
   resolution: string;
 }
 
-export interface VoiceProfile {
+export interface CharacterVoiceProfile {
   vocabulary_level: 'simple' | 'moderate' | 'complex';
   speech_patterns: string[];
   catchphrases: string[];
@@ -247,12 +369,6 @@ export interface Economy extends BaseEntity {
   wealth_distribution: WealthDistribution;
 }
 
-export interface Currency {
-  name: string;
-  symbol: string;
-  denominations: Denomination[];
-  exchange_rates?: Record<string, number>;
-}
 
 export interface Denomination {
   name: string;
@@ -334,14 +450,6 @@ export interface TextVersion extends BaseEntity {
   quality_score?: number;
 }
 
-export interface AIGenerationParams {
-  persona: AIPersona;
-  temperature: number;
-  max_tokens: number;
-  prompt_template_id?: string;
-  context_refs: string[];
-  safety_overrides?: Record<string, any>;
-}
 
 export interface StyleProfile extends BaseEntity {
   user_id: string;
@@ -442,17 +550,59 @@ export enum RenderingMode {
   FULL = 'full'
 }
 
-export enum AIPersona {
-  MUSE = 'muse',
-  EDITOR = 'editor',
-  COACH = 'coach'
-}
 
 export enum EconomyType {
   BARTER = 'barter',
-  CURRENCY = 'currency',
-  MIXED = 'mixed',
-  GIFT = 'gift',
-  COMMAND = 'command',
-  MARKET = 'market'
+  AGRARIAN = 'agrarian',
+  MERCANTILE = 'mercantile',
+  INDUSTRIAL = 'industrial',
+  CAPITALIST = 'capitalist',
+  SOCIALIST = 'socialist',
+  MIXED = 'mixed'
+}
+
+// Heat Level (Steam Level) for content calibration
+export enum HeatLevel {
+  CLOSED_DOOR = 1,
+  WARM = 2,
+  STEAMY = 3,
+  SPICY = 4,
+  SCORCHING = 5
+}
+
+export const HEAT_LEVEL_LABELS: Record<HeatLevel, string> = {
+  [HeatLevel.CLOSED_DOOR]: 'Closed Door',
+  [HeatLevel.WARM]: 'Warm',
+  [HeatLevel.STEAMY]: 'Steamy',
+  [HeatLevel.SPICY]: 'Spicy',
+  [HeatLevel.SCORCHING]: 'Scorching'
+};
+
+export const HEAT_LEVEL_DESCRIPTIONS: Record<HeatLevel, string> = {
+  [HeatLevel.CLOSED_DOOR]: 'Fade to black before anything physical beyond kissing',
+  [HeatLevel.WARM]: 'Foreplay described, act implied with literary language',
+  [HeatLevel.STEAMY]: 'Full scenes with moderate explicitness, emotional balance',
+  [HeatLevel.SPICY]: 'Detailed extended scenes, kink elements may be introduced',
+  [HeatLevel.SCORCHING]: 'No content limits within consent boundaries'
+};
+
+// Line edit types for editor analysis
+export enum LineEditType {
+  FILTER_WORD = 'filter_word',
+  SHOW_DONT_TELL = 'show_dont_tell',
+  DIALOGUE_TAG = 'dialogue_tag',
+  POV_INCONSISTENCY = 'pov_inconsistency',
+  PASSIVE_VOICE = 'passive_voice',
+  ADVERB_OVERUSE = 'adverb_overuse',
+  REPETITION = 'repetition'
+}
+
+// Steam calibration settings for projects
+export interface SteamCalibration {
+  project_heat_level: HeatLevel;
+  allow_scene_overrides: boolean;
+  custom_vocabulary?: {
+    allowed?: string[];
+    restricted?: string[];
+  };
 }

@@ -1,8 +1,7 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "es6"],
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "es2020"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -29,10 +28,12 @@
       "@/store/*": ["./src/store/*"],
       "@/types/*": ["./src/types/*"],
       "@/styles/*": ["./src/styles/*"],
-      "@worldbest/shared-types": ["../../packages/shared-types/src"],
-      "@worldbest/ui-components": ["../../packages/ui-components/src"]
+      "@worldbest/shared-types": ["./packages/shared-types/src"],
+      "@worldbest/ui-components": ["./packages/ui-components/src"],
+      "@ember/shared-types": ["./packages/shared-types/src"],
+      "@ember/ui-components": ["./packages/ui-components/src"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "backend", "my-agent"]
 }
